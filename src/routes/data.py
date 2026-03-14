@@ -23,7 +23,7 @@ data_router = APIRouter(
 async def upload_data(request: Request, project_id: str, file: UploadFile,
                       app_settings: Settings = Depends(get_settings)):
         
-    project_model = ProjectModel(db_client=request.app.db_client)
+    project_model = await ProjectModel.create_instence(db_client=request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
     # validate the file properties
     data_controller = DataController()
@@ -74,7 +74,7 @@ async def process_request(request: Request, project_id:str , process_request: Pr
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
 
-    project_model = ProjectModel(db_client=request.app.db_client)
+    project_model = await ProjectModel.create_instence(db_client=request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
 
 
@@ -104,15 +104,15 @@ async def process_request(request: Request, project_id:str , process_request: Pr
         
         ]
     
-    chunk_model = ChunkModel(db_client=request.app.db_client)
-    
+    chunk_model = await ChunkModel.create_instence(db_client=request.app.db_client)
+
     if do_reset==1:
             
             deleted_count = await chunk_model.delete_chunks_by_project_id(project_id=project.id)
     
             logger.info(f"Deleted {deleted_count} chunks for project_id: {project_id}")
     
-    chunk_model = ChunkModel(db_client=request.app.db_client)
+    chunk_model = await ChunkModel.create_instence(db_client=request.app.db_client)
     inserted_count = await chunk_model.insert_many_chunks(chunks=file_chunks_records)
     
     return JSONResponse(
