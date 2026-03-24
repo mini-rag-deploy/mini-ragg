@@ -1,5 +1,5 @@
 from .LLMEnums import LLMEnums, CoHereEnums, DocumentTypeEnums
-from .providers import CohereProvider, OpenAIProvider,GeminiProvider
+from .providers import CoHereProvider, OpenAIProvider
 
 class LLMProviderFactory:
     def __init__(self, config: dict):
@@ -16,7 +16,7 @@ class LLMProviderFactory:
             )
 
         if provider == LLMEnums.COHERE.value:
-            return CohereProvider(
+            return CoHereProvider(
                 api_key=self.config.COHERE_API_KEY,
                 default_input_max_characters=self.config.INPUT_DEFAULT_MAX_CHARACTERS,
                 default_output_max_tokens=self.config.OUTPUT_DEFAULT_MAX_CHARACTERS,

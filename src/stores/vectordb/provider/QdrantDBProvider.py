@@ -3,7 +3,7 @@ from qdrant_client import QdrantClient,models
 from ..VectorDBEnums import DistanceMethodEnums
 import logging
 
-class QdrantDB(VectorDBInterface):
+class QdrantDBProvider(VectorDBInterface):
     def __init__(self, db_path:str, distance_method:str):
 
         self.client = None
@@ -124,6 +124,7 @@ class QdrantDB(VectorDBInterface):
                 collection_name=collection_name,
                 records=[
                     models.Record(
+                        id=record_id,
                         vector=vector,
                         payload={
                             "text": text,
@@ -147,7 +148,7 @@ class QdrantDB(VectorDBInterface):
             metadatas = [None] * len(texts)
 
         if record_ids is None:
-            record_ids = [None] * len(texts)
+            record_ids = list(range(0, len(texts)))
 
         if not self.client:
             self.logger.error("Qdrant client is not initialized.")
@@ -163,16 +164,18 @@ class QdrantDB(VectorDBInterface):
                 batch_texts = texts[i:batch_end]
                 batch_vectors = vectors[i:batch_end]
                 batch_metadatas = metadatas[i:batch_end]
+                batch_record_ids = record_ids[i:batch_end]
 
-                batch_records= {
+                batch_records= [
                     models.Record(
+                        id=batch_record_ids[j],
                         vector=batch_vectors[j],
                         payload={
                             "text": batch_texts[j],
                             "metadata": batch_metadatas[j]
                         }
                     ) for j in range(len(batch_texts))
-                }
+                ]
 
                 _ = self.client.upload_records(
                     collection_name=collection_name,
@@ -181,7 +184,7 @@ class QdrantDB(VectorDBInterface):
             self.logger.info(f"Inserted {len(texts)} records into collection '{collection_name}' successfully.")
             return True
         except Exception as e:
-            self.logger.error(f"Error inserting records: {e}")
+            self.logger.error(f"Error inserting many records: {e}")
             return False
         
     def search_by_vector(self, collection_name: str, 

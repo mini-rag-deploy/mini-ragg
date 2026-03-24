@@ -3,7 +3,7 @@ from ..LLMEnums import CoHereEnums,DocumentTypeEnums
 import cohere
 import logging
 
-class CohereProvider(LLMInterface):
+class CoHereProvider(LLMInterface):
     def __init__(self, api_key: str,
                     default_input_max_characters: int = 1000,
                     default_output_max_tokens: int = 2048 ,
@@ -71,7 +71,7 @@ class CohereProvider(LLMInterface):
         if document_type== DocumentTypeEnums.QUERY:
             input_type = CoHereEnums.QUERY
         
-        response = self.client.embeddings(
+        response = self.client.embed(
             texts=[self.process_text(text)],
             model=self.embedding_model_id,
             input_type=input_type,
