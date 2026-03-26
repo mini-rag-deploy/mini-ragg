@@ -3,6 +3,7 @@ from routes import base, data, nlp
 from motor.motor_asyncio import AsyncIOMotorClient
 from helpers.config import Settings
 from stores.llm import LLMProviderFactory
+from stores.llm.templates.template_parser import template_parser
 from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
 app = FastAPI()
 
@@ -29,6 +30,11 @@ async def startup_span():
     # vector database client
     app.vectordb_client = vector_db_provider_factory.create(provider=settings.VECTORD_DB_BACKEND)
     app.vectordb_client.connect()
+
+    app.template_parser = template_parser(
+        language=settings.PRIMARY_LANG,
+        default_language=settings.DEFAULT_LANG
+    )
 
 async def shutdown_span():
     app.mongo_conn.close()

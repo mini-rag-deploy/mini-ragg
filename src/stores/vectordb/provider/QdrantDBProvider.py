@@ -1,5 +1,6 @@
 from ..VectorDBInterface import VectorDBInterface
 from qdrant_client import QdrantClient,models
+from models.db_schemes import RetrievedDocument
 from ..VectorDBEnums import DistanceMethodEnums
 import logging
 
@@ -203,7 +204,16 @@ class QdrantDBProvider(VectorDBInterface):
                 query_vector=vector,
                 limit=limit
             )
-            return search_result
+            if not search_result or len(search_result) == 0:
+                self.logger.info(f"No search results found for the given vector in collection '{collection_name}'.")
+                return []
+            
+            return [
+                RetrievedDocument(**{
+                    "text": record.payload.get("text", ""),
+                    "score": record.score
+                }) for record in search_result
+            ]
         except Exception as e:
             self.logger.error(f"Error searching by vector: {e}")
             return []
