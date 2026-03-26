@@ -14,13 +14,14 @@ system_prompt=Template("\n".join([
 document_prompt=Template(
     "\n".join([
         "## المستند رقم: $doc_num",
-        "### المحتوى: $chuck_text",
+        "### المحتوى: $chunk_text",
     ])
 )
 
 ### footer prompt for RAG
 footer_prompt=Template(
     "\n".join([
+        "بناءً على المستندات المسترجعة أعلاه، يرجى الإجابة على السؤال التالي:",
         "### السؤال: $query",
         "### الإجابة:"
     ])

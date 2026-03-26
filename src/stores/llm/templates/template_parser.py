@@ -13,6 +13,7 @@ class template_parser:
         if not language:
             self.language = self.default_language
         self.language = language if language and os.path.exists(os.path.join(self.current_path,"locales", language)) else self.default_language
+        print(f"Template parser language set to: {self.language}")
 
     def get(self, group:str, key:str, vars:dict={}):
 

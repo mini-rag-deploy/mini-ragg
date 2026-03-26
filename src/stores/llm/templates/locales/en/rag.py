@@ -26,6 +26,7 @@ document_prompt=Template(
 footer_prompt=Template(
     "\n".join([
         "Based on the above retrieved documents, please answer the following question:",
+        "Question: $query",
         "### Answer:"
     ])
 )
