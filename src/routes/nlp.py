@@ -6,6 +6,7 @@ from controllers import NLPController
 import aiofiles
 from models import ResponseSignal
 import logging
+from tqdm.auto import tqdm
 
 from .schemes.nlp import PushRequest , SearchRequest
 from models.ProjectModel import ProjectModel
@@ -50,6 +51,18 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
     inserted_items_count=0
     idx=0
 
+    # create collection if not exists
+    collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+    _ = await request.app.vectordb_client.create_collection(
+                collection_name=collection_name,
+                embedding_size=request.app.embedding_client.embedding_size,
+                do_reset=push_request.do_reset
+                )
+    
+    # setup batching
+    total_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
+    pbar = tqdm(total=total_chunks_count, desc="Indexing Chunks into VectorDB", unit="chunk",position=0)
+
     while has_records:
         page_chunks = await chunk_model.get_project_chunks(project_id=project.project_id, page_no=page_no)
         if len(page_chunks):
@@ -59,17 +72,21 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
             has_records=False
             break
             
-        chunks_ids = list(range(idx,idx+len(page_chunks)))
+        chunks_ids = [ s.chunk_id for s in page_chunks]
         idx += len(page_chunks)
     
-        is_inserted= nlp_controller.index_into_vector_db(project=project, chunks=page_chunks,
-                                             do_reset=push_request.do_reset,
-                                             chunks_ids=chunks_ids
+        is_inserted= await nlp_controller.index_into_vector_db(
+                                            project=project,
+                                            chunks=page_chunks,
+                                            chunks_ids=chunks_ids
                                              )
         if not is_inserted:
             logger.error(f"Failed to index chunks into vector database for project_id: {project_id}, page_no: {page_no}")
             return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_ERROR.value})
+        
         inserted_items_count+= len(page_chunks)
+        pbar.update(len(page_chunks))
+    
     return JSONResponse(status_code=status.HTTP_200_OK,
                          content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_SUCCESS.value,
                                   "inserted_items_count": inserted_items_count})
@@ -91,14 +108,14 @@ async def get_project_index_info(request: Request, project_id: int):
         embedding_client=request.app.embedding_client
     )
 
-    collection_info = nlp_controller.get_vector_db_collection_info(project=project)
+    collection_info = await nlp_controller.get_vector_db_collection_info(project=project)
 
     if collection_info is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.COLLECTION_NOT_FOUND.value})
     
     return JSONResponse(status_code=status.HTTP_200_OK,
                          content={"signal": ResponseSignal.COLLECTION_INFO_RETRIEVE_SUCCESS.value,
-                                  "collection_info": collection_info.dict()})
+                                  "collection_info": collection_info})
 @nlp_router.post("/index/search/{project_id}")
 async def search_index(request: Request, project_id: int, search_request: SearchRequest):
     project_model = await ProjectModel.create_instence(
@@ -116,7 +133,7 @@ async def search_index(request: Request, project_id: int, search_request: Search
         template_parser=request.app.template_parser
     )
 
-    search_results = nlp_controller.search_vector_db_collection(
+    search_results = await nlp_controller.search_vector_db_collection(
         project=project,
         text=search_request.text,
         limit=search_request.limit
@@ -147,7 +164,7 @@ async def answer_rag_question(request: Request, project_id: int, search_request:
         template_parser=request.app.template_parser
     )
 
-    answer,full_peompt, chat_history = nlp_controller.answer_rag_question(
+    answer,full_peompt, chat_history = await nlp_controller.answer_rag_question(
         project=project,
         query=search_request.text,
         limit=search_request.limit

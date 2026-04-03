@@ -5,11 +5,13 @@ from ..VectorDBEnums import DistanceMethodEnums
 import logging
 
 class QdrantDBProvider(VectorDBInterface):
-    def __init__(self, db_path:str, distance_method:str):
+    def __init__(self, db_client:str, default_vector_size: int=786,
+                  distance_method: str=None, index_threshold: int=100):
 
         self.client = None
-        self.db_path = db_path
+        self.db_client = db_client
         self.distance_method = None
+        self.default_vector_size = default_vector_size
 
         if distance_method == DistanceMethodEnums.COSINE.value:
             self.distance_method = models.Distance.COSINE
@@ -18,22 +20,22 @@ class QdrantDBProvider(VectorDBInterface):
         elif distance_method == DistanceMethodEnums.DOT.value:
             self.distance_method = models.Distance.DOT
         
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('uvicorn')
 
     
-    def connect(self):
+    async def connect(self):
         try:
-            self.client = QdrantClient(path=self.db_path)
+            self.client = QdrantClient(path=self.db_client)
             self.logger.info("Connected to QdrantDB successfully.")
         except Exception as e:
             self.logger.error(f"Failed to connect to QdrantDB: {e}")
             self.client = None
         
-    def disconnect(self):
+    async def disconnect(self):
         self.client = None
         self.logger.info("Disconnected from QdrantDB.")
     
-    def is_collection_existed(self, collection_name: str) -> bool:
+    async def is_collection_existed(self, collection_name: str) -> bool:
         if not self.client:
             self.logger.error("Qdrant client is not initialized.")
             return False
@@ -43,7 +45,7 @@ class QdrantDBProvider(VectorDBInterface):
             self.logger.error(f"Error checking collection existence: {e}")
             return False
     
-    def list_all_collections(self) -> list:
+    async def list_all_collections(self) -> list:
         if not self.client:
             self.logger.error("Qdrant client is not initialized.")
             return []
@@ -54,7 +56,7 @@ class QdrantDBProvider(VectorDBInterface):
             self.logger.error(f"Error listing collections: {e}")
             return []
     
-    def get_collection_info(self, collection_name: str) -> dict:
+    async def get_collection_info(self, collection_name: str) -> dict:
         if not self.client:
             self.logger.error("Qdrant client is not initialized.")
             return {}
@@ -65,7 +67,7 @@ class QdrantDBProvider(VectorDBInterface):
             self.logger.error(f"Error getting collection info: {e}")
             return {}
     
-    def delete_collection(self, collection_name: str):
+    async def delete_collection(self, collection_name: str):
         if not self.client:
             self.logger.error("Qdrant client is not initialized.")
             return
@@ -79,7 +81,7 @@ class QdrantDBProvider(VectorDBInterface):
                 self.logger.error(f"Error deleting collection: {e}")
                 return False
             
-    def create_collection(self, collection_name: str,
+    async def create_collection(self, collection_name: str,
                            embedding_size: int,
                            do_reset: bool = False
                            ):
@@ -95,7 +97,8 @@ class QdrantDBProvider(VectorDBInterface):
                 return
         
         try:
-            _ = self.client.recreate_collection(
+            self.logger.info(f"Creating new Qdrant collection '{collection_name}' with embedding size {embedding_size} and distance method {self.distance_method}.")
+            _ = self.client.create_collection(
                 collection_name=collection_name,
                 vectors_config=models.VectorParams(
                     size=embedding_size,
@@ -108,7 +111,7 @@ class QdrantDBProvider(VectorDBInterface):
             self.logger.error(f"Error creating collection: {e}")
             return False
         
-    def insert_one(self, collection_name: str, text: str,vector:list,
+    async def insert_one(self, collection_name: str, text: str,vector:list,
                     metadata: dict = None,
                     record_id: str = None
                         ):
@@ -140,7 +143,7 @@ class QdrantDBProvider(VectorDBInterface):
             self.logger.error(f"Error inserting record: {e}")
             return False
     
-    def insert_many(self, collection_name: str, texts: list, vectors: list,
+    async def insert_many(self, collection_name: str, texts: list, vectors: list,
                     metadatas: list = None,
                     record_ids: list = None,
                     batch_size: int = 50
@@ -188,7 +191,7 @@ class QdrantDBProvider(VectorDBInterface):
             self.logger.error(f"Error inserting many records: {e}")
             return False
         
-    def search_by_vector(self, collection_name: str, 
+    async def search_by_vector(self, collection_name: str, 
                          vector: list, limit: int=5):
         if not self.client:
             self.logger.error("Qdrant client is not initialized.")
