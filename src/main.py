@@ -1,20 +1,29 @@
 from fastapi import FastAPI
 from routes import base, data, nlp
-from motor.motor_asyncio import AsyncIOMotorClient
 from helpers.config import Settings
 from stores.llm import LLMProviderFactory
 from stores.llm.templates.template_parser import template_parser
 from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+from utils.metrics import setup_metrics
+
 app = FastAPI()
+setup_metrics(app)
 
 
 async def startup_span():
     settings = Settings()
-    app.mongo_conn = AsyncIOMotorClient(settings.MONGODB_URI)
-    app.db_client = app.mongo_conn[settings.MONGODB_DATABASE]
+
+    postgres_conn=f"postgresql+asyncpg://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
+    app.db_engine = create_async_engine(postgres_conn)
+    app.db_client = sessionmaker(
+                    app.db_engine, expire_on_commit=False,class_=AsyncSession
+                                )
 
     llm_provider_factory = LLMProviderFactory(settings)
-    vector_db_provider_factory = VectorDBProviderFactory(settings)
+    vector_db_provider_factory = VectorDBProviderFactory(settings,db_client=app.db_client)
 
     # generation client
     app.generation_client = llm_provider_factory.create(provider=settings.GENERATION_BACKEND)
@@ -29,7 +38,7 @@ async def startup_span():
 
     # vector database client
     app.vectordb_client = vector_db_provider_factory.create(provider=settings.VECTORD_DB_BACKEND)
-    app.vectordb_client.connect()
+    await app.vectordb_client.connect()
 
     app.template_parser = template_parser(
         language=settings.PRIMARY_LANG,
@@ -37,8 +46,8 @@ async def startup_span():
     )
 
 async def shutdown_span():
-    app.mongo_conn.close()
-    app.vectordb_client.disconnect()
+    app.db_engine.dispose()
+    await app.vectordb_client.disconnect()
 
 app.on_event("startup")(startup_span)
 app.on_event("shutdown")(shutdown_span)
