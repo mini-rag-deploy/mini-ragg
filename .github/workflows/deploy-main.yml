@@ -1,9 +1,9 @@
-name: Deploy Develop Branch to Server
+name: Deploy Main Branch to Server
 
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.SSH_MAIN_PRIVATE_KEY }}
           script: |
             cd /home/github_user/workspace/mini-ragg
-            git checkout develop
+            git checkout main
             git pull
             sudo systemctl restart minirag.service
             echo "Waiting..."
