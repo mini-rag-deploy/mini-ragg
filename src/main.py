@@ -7,7 +7,10 @@ from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
+from utils.metrics import setup_metrics
+
 app = FastAPI()
+setup_metrics(app)
 
 
 async def startup_span():

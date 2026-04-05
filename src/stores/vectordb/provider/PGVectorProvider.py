@@ -6,7 +6,8 @@ from ..VectorDBEnums import (DistanceMethodEnums ,PgVectorDistanceMethodEnums,
 import logging
 from typing import List
 from sqlalchemy.sql import text as sql_text
-import json 
+from sqlalchemy.exc import IntegrityError
+import json
 
 class PGVectorProvider(VectorDBInterface):
     def __init__(self, db_client, default_vector_size: int=786,
@@ -30,12 +31,17 @@ class PGVectorProvider(VectorDBInterface):
     
     async def connect(self):
         async with self.client() as session:
-            async with session.begin():
-                await session.execute(sql_text(
-                    "CREATE EXTENSION IF NOT EXISTS vector"
-                ))
-            
-            await session.commit()
+            try:
+                async with session.begin():
+                    await session.execute(sql_text(
+                        "CREATE EXTENSION IF NOT EXISTS vector"
+                    ))
+
+                await session.commit()
+            except IntegrityError as exception:
+                await session.rollback()
+                if "pg_extension_name_index" not in str(exception):
+                    raise
         
     async def disconnect(self):
         pass
