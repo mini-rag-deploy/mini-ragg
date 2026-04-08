@@ -63,6 +63,13 @@ Set your environment variables in the `.env` file. Like `OPENAI_API_KEY` value.
 $ uvicorn main:app --reload --host 0.0.0.0 --port 5000
 ```
 
+## Run the Celery server
+
+```bash
+$ python -m celery -A celery_app worker --queues=default,file_processing_queue --loglevel=info --pool=solo
+```
+
+
 ## POSTMAN Collection 
 
 Download the POSTMAN collection from [/assets/mini-rag-app.postman_collection.json](/assets/mini-rag-app.postman_collection.json)

@@ -52,6 +52,7 @@ celery_app = Celery(
     backend=settings.CELERY_RESULT_BACKEND,
     include=[
         "tasks.file_processing",
+        "tasks.data_indexing",
         # "tasks.mail_service"
         ]  # Ensure tasks are registered
     
@@ -86,7 +87,8 @@ celery_app.conf.update(
 
     task_routes=(
             {"tasks.file_processing.process_project_files": {"queue": "file_processing_queue"}},
-                # {"tasks.mail_service.send_email_reports": {"queue": "mail_server_queue"}},
+                {"tasks.mail_service.send_email_reports": {"queue": "mail_server_queue"}},
+                {"tasks.data_indexing.index_data_content": {"queue": "data_indexing_queue"}},
     )
 
 )

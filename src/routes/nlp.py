@@ -15,7 +15,7 @@ from models.AssetModel import AssetModel
 from models.db_schemes import DataChunk
 from models.db_schemes import Asset
 from models.enums.AssetTypeEnum import AssetTypeEnum
-
+from tasks.data_indexing import index_data_content
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -27,69 +27,14 @@ nlp_router = APIRouter(
 @nlp_router.post("/index/push/{project_id}")
 async def index_project(request: Request, project_id: int, push_request: PushRequest,
                         app_settings: Settings = Depends(get_settings)):
-    project_model =await ProjectModel.create_instence(
-        db_client=request.app.db_client,
-    )
-    chunk_model = await ChunkModel.create_instence(
-        db_client=request.app.db_client,
-    )
-    project =await project_model.get_project_or_create_one(
-        project_id=project_id
-    )
+    task = index_data_content.delay(project_id=project_id, do_reset=push_request.do_reset)
 
-    if not project:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
-    
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client
+    return JSONResponse(
+                        content={
+                            "signal": ResponseSignal.DATA_PUSH_TASK_READY.value,
+                            "task_id": task.id
+                        }
     )
-
-    has_records=True
-    page_no=1
-    inserted_items_count=0
-    idx=0
-
-    # create collection if not exists
-    collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
-    _ = await request.app.vectordb_client.create_collection(
-                collection_name=collection_name,
-                embedding_size=request.app.embedding_client.embedding_size,
-                do_reset=push_request.do_reset
-                )
-    
-    # setup batching
-    total_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
-    pbar = tqdm(total=total_chunks_count, desc="Indexing Chunks into VectorDB", unit="chunk",position=0)
-
-    while has_records:
-        page_chunks = await chunk_model.get_project_chunks(project_id=project.project_id, page_no=page_no)
-        if len(page_chunks):
-            page_no+=1
-        
-        if not page_chunks or len(page_chunks)==0:
-            has_records=False
-            break
-            
-        chunks_ids = [ s.chunk_id for s in page_chunks]
-        idx += len(page_chunks)
-    
-        is_inserted= await nlp_controller.index_into_vector_db(
-                                            project=project,
-                                            chunks=page_chunks,
-                                            chunks_ids=chunks_ids
-                                             )
-        if not is_inserted:
-            logger.error(f"Failed to index chunks into vector database for project_id: {project_id}, page_no: {page_no}")
-            return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_ERROR.value})
-        
-        inserted_items_count+= len(page_chunks)
-        pbar.update(len(page_chunks))
-    
-    return JSONResponse(status_code=status.HTTP_200_OK,
-                         content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_SUCCESS.value,
-                                  "inserted_items_count": inserted_items_count})
 
 
 @nlp_router.get("/index/info/{project_id}")

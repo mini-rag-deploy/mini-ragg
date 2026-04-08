@@ -20,3 +20,4 @@ class ResponseSignal(Enum):
     VECTOR_DB_SEARCH_SUCCESS = "vector_db_search_success"
     RAG_ANSWERING_ERROR = "rag_answering_error"
     RAG_ANSWERING_SUCCESS = "rag_answering_success"
+    DATA_PUSH_TASK_READY = "data_push_task_ready"
