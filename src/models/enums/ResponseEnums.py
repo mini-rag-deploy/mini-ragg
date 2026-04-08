@@ -21,3 +21,4 @@ class ResponseSignal(Enum):
     RAG_ANSWERING_ERROR = "rag_answering_error"
     RAG_ANSWERING_SUCCESS = "rag_answering_success"
     DATA_PUSH_TASK_READY = "data_push_task_ready"
+    PROCESS_AND_PUSH_WORKFLOW_READY = "process_and_push_workflow_ready"
