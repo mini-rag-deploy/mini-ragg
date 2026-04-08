@@ -54,6 +54,7 @@ celery_app = Celery(
         "tasks.file_processing",
         "tasks.data_indexing",
         "tasks.process_workflow",
+        "tasks.maintenance",
         # "tasks.mail_service"
         ]  # Ensure tasks are registered
     
@@ -91,7 +92,18 @@ celery_app.conf.update(
                 {"tasks.mail_service.send_email_reports": {"queue": "mail_server_queue"}},
                 {"tasks.data_indexing.index_data_content": {"queue": "data_indexing_queue"}},
                 {"tasks.process_workflow.process_and_push_workflow": {"queue": "workflow_queue"}},
-    )
+                {"tasks.maintenance.clean_celery_executions_table": {"queue": "default"}},
+    ),
+
+    beat_schedule={
+        'cleanup-old-task-records': {
+            'task': "tasks.maintenance.clean_celery_executions_table",
+            'schedule': 10,
+            'args': ()
+        }
+    },
+
+    timezone='UTC',
 
 )
 celery_app.conf.task_default_queue = "default"
