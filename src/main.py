@@ -27,7 +27,7 @@ async def startup_span():
 
     # generation client
     app.generation_client = llm_provider_factory.create(provider=settings.GENERATION_BACKEND)
-    app.generation_client.set_generation_mode(model_id=settings.GENERATION_MODEL_ID)
+    app.generation_client.set_generation_model(model_id=settings.GENERATION_MODEL_ID)
 
     # embedding client
     app.embedding_client = llm_provider_factory.create(provider=settings.EMBEDDING_BACKEND)

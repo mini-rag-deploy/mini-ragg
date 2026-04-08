@@ -14,6 +14,7 @@ from models.AssetModel import AssetModel
 from models.db_schemes import DataChunk
 from models.db_schemes import Asset
 from models.enums.AssetTypeEnum import AssetTypeEnum
+from tasks.file_processing import process_project_files
 
 
 logger = logging.getLogger('uvicorn.error')
@@ -83,9 +84,26 @@ async def upload_data(request: Request, project_id: int, file: UploadFile,
 @data_router.post("/process/{project_id}")
 async def process_request(request: Request, project_id:int , process_request: ProcessRequest):
 
+
     chunk_size = process_request.chunck_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
+
+    task = process_project_files.delay(
+        project_id=project_id,
+        file_id=process_request.file_id,
+        chunk_size=chunk_size,
+        overlap_size=overlap_size,
+        do_reset=do_reset
+    )
+
+    return JSONResponse(
+        content={
+            "signal": ResponseSignal.PROCESSING_SUCCESS.value,
+            "task_id": task.id,
+        }
+    )
+
 
     project_model = await ProjectModel.create_instence(db_client=request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)

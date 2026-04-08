@@ -24,7 +24,7 @@ class GeminiProvider(LLMInterface):
         self.logger = logging.getLogger(__name__)
 
 
-    def set_generation_mode(self, model_id: str):
+    def set_generation_model(self, model_id: str):
         self.generation_model_id = model_id
     
     def set_embedding_model(self, model_id: str, embedding_size: int):
