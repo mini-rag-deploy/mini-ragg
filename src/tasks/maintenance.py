@@ -32,7 +32,7 @@ async def _clean_celery_executions_table(task_instance):
         idempotency_manager = IdempotencyManager(db_client, db_engine)
 
         logger.warning(f"cleaning !!!")
-        _ = await idempotency_manager.cleanup_old_tasks(5)
+        _ = await idempotency_manager.cleanup_old_tasks()
 
         return True
 
