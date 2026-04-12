@@ -67,10 +67,10 @@ $ python -m celery -A celery_app worker --queues=default,file_processing_queue -
 Once the application is deployed, you can monitor the background tasks and API metrics using Flower and Grafana.
 
 **Flower - Celery Workers Monitoring:**
-![Flower Dashboard](docs/flower.png)
+![Flower Dashboard](docs/Flower_Screen.png)
 
 **Grafana - FastAPI Observability Dashboard:**
-![Grafana Dashboard](docs/grafana.png)
+![Grafana Dashboard](docs/Grafana_Screen.png)
 
 
 
