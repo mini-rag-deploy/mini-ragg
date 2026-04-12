@@ -38,7 +38,7 @@ services:
         condition: service_healthy
     env_file:
       - ./env/.env.app
-    command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--queues=default,file_processing,data_indexing", "--loglevel=info"]
+    command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--queues=default,file_processing_queue,data_indexing_queue,workflow_queue,mail_server_queue", "--loglevel=info"]
 
   # Celery Beat Scheduler
   celery-beat:
