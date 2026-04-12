@@ -62,5 +62,15 @@ $ uvicorn main:app --reload --host 0.0.0.0 --port 5000
 $ python -m celery -A celery_app worker --queues=default,file_processing_queue --loglevel=info --pool=solo
 ```
 
+## Monitoring & Observability
+
+Once the application is deployed, you can monitor the background tasks and API metrics using Flower and Grafana.
+
+**Flower - Celery Workers Monitoring:**
+![Flower Dashboard](docs/flower.png)
+
+**Grafana - FastAPI Observability Dashboard:**
+![Grafana Dashboard](docs/grafana.png)
+
 
 
