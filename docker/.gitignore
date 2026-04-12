@@ -2,3 +2,5 @@ mongodb
 env/.env*
 
 !env/.env.exam*
+
+minirag/alembic.ini
