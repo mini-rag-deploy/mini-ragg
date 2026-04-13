@@ -93,7 +93,14 @@ class IdempotencyManager:
         # Check if task is stuck (running longer than time limit + 60 seconds)
         if existing_task.status in ['PENDING', 'STARTED', 'RETRY']:
             if existing_task.started_at:
-                time_elapsed = (datetime.utcnow() - existing_task.started_at).total_seconds()
+                now_aware = datetime.now(timezone.utc)
+                # Ensure existing_task.started_at is also offset-aware before subtracting
+                if existing_task.started_at.tzinfo is None:
+                    started_at = existing_task.started_at.replace(tzinfo=timezone.utc)
+                else:
+                    started_at = existing_task.started_at
+                    
+                time_elapsed = (now_aware - started_at).total_seconds()
                 time_gap = 60  # 60 seconds grace period
                 if time_elapsed > (task_time_limit + time_gap):
                     return True, existing_task  # Task is stuck, allow re-execution

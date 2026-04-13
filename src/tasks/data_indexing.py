@@ -53,6 +53,8 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
             task_instance.update_state(
                 state="FAILURE",
                 meta={
+                    "exc_type": "Exception",
+                    "exc_message": f"No project found for project_id: {project_id}",
                     "signal": ResponseSignal.PROJECT_NOT_FOUND.value
                 }
             )
@@ -108,6 +110,8 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
                 task_instance.update_state(
                     state="FAILURE",
                     meta={
+                        "exc_type": "Exception",
+                        "exc_message": f"Cannot insert into vectorDB | project_id: {project_id}",
                         "signal": ResponseSignal.INSERT_INTO_VECTORDB_ERROR.value
                     }
                 )

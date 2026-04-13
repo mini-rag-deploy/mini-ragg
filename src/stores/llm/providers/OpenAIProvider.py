@@ -2,6 +2,7 @@ from ..LLMInterface import LLMInterface
 from ..LLMEnums import OpenAIEnums
 from openai import OpenAI
 import logging
+import json
 from typing import List, Union
 
 class OpenAIProvider(LLMInterface):
@@ -37,8 +38,22 @@ class OpenAIProvider(LLMInterface):
         self.embedding_model_id = model_id
         self.embedding_size = embedding_size
 
-    def process_text(self, text: str):
-        return text[:self.default_input_max_characters].strip()
+    def process_text(self, text: str, is_prompt: bool = False):
+        limit = max(self.default_input_max_characters, 20000)
+        
+        if len(text) <= limit:
+            return text.strip()
+            
+        if is_prompt:
+            # Smart Truncation: Keep 70% from the start (Instructions + Context) 
+            # and 30% from the end (Question + Final Formatting)
+            top_part = int(limit * 0.7)
+            bottom_part = int(limit * 0.3)
+            truncated_text = text[:top_part] + "\n\n...[MIDDLE CONTENT TRUNCATED DUE TO LENGTH]...\n\n" + text[-bottom_part:]
+            return truncated_text.strip()
+            
+        # Regular truncation for plain text (just cut from the end)
+        return text[:limit].strip()
 
     def generate_text(self, prompt: str , chat_history:list=[], max_output_tokens:int=None,
                        temperature: float = None):
@@ -65,6 +80,33 @@ class OpenAIProvider(LLMInterface):
             return None
         
         return response.choices[0].message.content
+    
+    # ============ NEW: for graders that return JSON ============
+    def generate_json(self, prompt: str, chat_history: list = [],
+                      max_output_tokens: int = 256) -> dict:
+        """
+        Uses response_format=json_object to ensure valid JSON always
+        """
+        if not self.client or not self.generation_model_id:
+            return {}
+
+        messages = list(chat_history)
+        messages.append(self.construct_prompt(prompt, role=OpenAIEnums.USER.value))
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.generation_model_id,
+                messages=messages,
+                max_tokens=max_output_tokens,
+                temperature=0,  # ← always 0 for graders to be deterministic
+                response_format={"type": "json_object"}
+            )
+            content = response.choices[0].message.content
+            return json.loads(content)
+        except Exception as e:
+            self.logger.error(f"generate_json failed: {e}")
+            return {}
+
 
 
     def embed_text(self, text: Union[str, List[str]], document_type: str=None):

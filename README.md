@@ -59,7 +59,16 @@ $ uvicorn main:app --reload --host 0.0.0.0 --port 5000
 ## Run the Celery server
 
 ```bash
-$ python -m celery -A celery_app worker --queues=default,file_processing_queue --loglevel=info --pool=solo
+
+$ docker compose up rabbitmq redis pgvector
+
+$ python -m celery -A celery_app worker --queues=default,file_processing_queue,mail_server_queue,data_indexing_queue,workflow_queue --loglevel=info --pool=solo
+
+$ python -m celery -A celery_app beat --loglevel=info
+
+$ python -m celery -A celery_app flower --conf=flowerconfig.py
+
+
 ```
 
 ## Monitoring & Observability

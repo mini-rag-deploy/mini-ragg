@@ -75,49 +75,92 @@ class NLPController(BaseController):
         return results
     
 
-    async def answer_rag_question(self, project:Project, query:str, limit:int=10):
-        answer,full_prompt, chat_history=None, None, None
-        # step 1: search relevant documents in vector database
-        retrieved_document= await self.search_vector_db_collection(project=project, text=query, limit=limit)
+    async def answer_rag_question(self, project: Project,
+                                   query: str, limit: int = 10,
+                                   use_self_correction: bool = True):
+        """
+        use_self_correction=True  → Self-Correcting RAG (New)
+        use_self_correction=False → Basic RAG (Old - for backward compatibility)
+        """
 
-        if not retrieved_document or len(retrieved_document) == 0:
-            self.logger.warning(f"No relevant documents found for query: {query} in project_id: {project.project_id}")
-            return answer,full_prompt, chat_history
-        
-        # step 2: construct prompt with retrieved documents and the query
+        if use_self_correction:
+            return await self._answer_with_graph(
+                project=project,
+                query=query
+            )
+        else:
+            return await self._answer_basic(
+                project=project,
+                query=query,
+                limit=limit
+            )
+
+    # ── Self-Correcting (New) ─────────────────────────────────
+    async def _answer_with_graph(self, project: Project,
+                                  query: str):
+        from graph.rag_graph import build_rag_graph
+
+        graph = build_rag_graph(
+            nlp_controller=self,
+            project=project
+        )
+
+        initial_state = {
+            "question": query,
+            "documents": [],
+            "answer": None,
+            "iterations": 0,
+            "grade_reason": None,
+        }
+
+        result = await graph.ainvoke(initial_state)
+
+        answer = result.get("answer")
+        metadata = {
+            "iterations": result.get("iterations", 0),
+            "docs_used": len(result.get("documents", [])),
+            "mode": "self_correcting"
+        }
+
+        return answer, metadata, []
+
+    # ── Basic RAG (Old - for backward compatibility) ──────────
+    async def _answer_basic(self, project: Project,
+                             query: str, limit: int = 10):
+        answer, full_prompt, chat_history = None, None, None
+
+        retrieved_document = await self.search_vector_db_collection(
+            project=project, text=query, limit=limit
+        )
+
+        if not retrieved_document:
+            return answer, full_prompt, chat_history
 
         system_prompt = self.template_parser.get("rag", "system_prompt")
 
-        
-
-        document_prompt="\n".join([
-            self.template_parser.get("rag", "document_prompt",{
-                "doc_num": i+1,
+        document_prompt = "\n".join([
+            self.template_parser.get("rag", "document_prompt", {
+                "doc_num": i + 1,
                 "chunk_text": self.generation_client.process_text(doc.text),
             })
             for i, doc in enumerate(retrieved_document)
         ])
 
-        footer_prompt = "\n".join([
-            self.template_parser.get("rag", "footer_prompt", {
-                "query": query
-            })
-        ])
+        footer_prompt = self.template_parser.get("rag", "footer_prompt", {
+            "query": query
+        })
 
-        chat_history=[
+        chat_history = [
             self.generation_client.construct_prompt(
-               prompt=system_prompt,
-                role=self.generation_client.enums.SYSTEM.value),
+                prompt=system_prompt,
+                role=self.generation_client.enums.SYSTEM.value
+            )
         ]
 
-        full_prompt= "\n\n".join([document_prompt, footer_prompt])
-
+        full_prompt = "\n\n".join([document_prompt, footer_prompt])
         answer = self.generation_client.generate_text(
             prompt=full_prompt,
             chat_history=chat_history
         )
 
-        return answer,full_prompt, chat_history
-
-        
-        
+        return answer, full_prompt, chat_history

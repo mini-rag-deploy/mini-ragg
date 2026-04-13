@@ -2,16 +2,16 @@ fastapi==0.110.2
 uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 python-dotenv==1.0.1
-pydantic-settings==2.2.1
+pydantic-settings==2.4.0
 aiofiles==23.2.1
-langchain==0.1.20
+langchain==0.3.7
 PyMuPDF==1.24.3
 motor==3.5.1
 pymongo==4.6.3
 openai==1.75.0
 cohere==5.5.8
 qdrant-client==1.10.1
-SQLAlchemy==2.0.36
+SQLAlchemy==2.0.35
 asyncpg==0.30.0
 alembic==1.14.0
 psycopg2-binary==2.9.10
@@ -32,3 +32,9 @@ kombu==5.5.4
 billiard==4.2.1
 vine==5.1.0
 flower==2.0.1
+
+
+# ============ NEW: Self-Correcting RAG ============
+langgraph==0.2.50
+langchain-openai==0.2.9
+langchain-community==0.3.7

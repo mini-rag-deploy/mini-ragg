@@ -58,10 +58,10 @@ class ProcessController(BaseController):
 
         file_content_metadata = [doc.metadata for doc in file_content]
 
-        # chunks = text_splitter.create_documents(file_content_texts,
-        #                                         metadatas=file_content_metadata
-        #                                         )
-        chunks = self.process_simpler_splitter(texts=file_content_texts, metadata=file_content_metadata, chunk_size=chunk_size)
+        chunks = text_splitter.create_documents(file_content_texts,
+                                                metadatas=file_content_metadata
+                                                )
+        # chunks = self.process_simpler_splitter(texts=file_content_texts, metadata=file_content_metadata, chunk_size=chunk_size)
 
         return chunks
     

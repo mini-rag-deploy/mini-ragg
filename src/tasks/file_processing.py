@@ -124,6 +124,8 @@ async def _process_project_files(task_instance, project_id: int,
                 task_instance.update_state(
                     state="FAILURE",
                     meta={
+                        "exc_type": "Exception",
+                        "exc_message": f"No assets for file: {file_id}",
                         "signal": ResponseSignal.FILE_ID_ERROR.value,
                     }
                 )
@@ -161,6 +163,8 @@ async def _process_project_files(task_instance, project_id: int,
             task_instance.update_state(
                 state="FAILURE",
                 meta={
+                    "exc_type": "Exception",
+                    "exc_message": "No files found for project",
                     "signal": ResponseSignal.NO_FILES_ERROR.value,
                 }
             )
@@ -198,6 +202,7 @@ async def _process_project_files(task_instance, project_id: int,
         for asset_id, file_id in project_files_ids.items():
 
             file_content = process_controller.get_file_content(file_id=file_id)
+            print(f"file content {file_content[:1000]}")  # Debug: print the first 100 characters of the file content
 
             if file_content is None:
                 logger.error(f"Error while processing file: {file_id}")

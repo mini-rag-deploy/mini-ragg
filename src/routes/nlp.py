@@ -27,14 +27,77 @@ nlp_router = APIRouter(
 @nlp_router.post("/index/push/{project_id}")
 async def index_project(request: Request, project_id: int, push_request: PushRequest,
                         app_settings: Settings = Depends(get_settings)):
-    task = index_data_content.delay(project_id=project_id, do_reset=push_request.do_reset)
+    # task = index_data_content.delay(project_id=project_id, do_reset=push_request.do_reset)
 
-    return JSONResponse(
-                        content={
-                            "signal": ResponseSignal.DATA_PUSH_TASK_READY.value,
-                            "task_id": task.id
-                        }
+    # return JSONResponse(
+    #                     content={
+    #                         "signal": ResponseSignal.DATA_PUSH_TASK_READY.value,
+    #                         "task_id": task.id
+    #                     }
+    # )
+    project_model =await ProjectModel.create_instence(
+        db_client=request.app.db_client,
     )
+    chunk_model = await ChunkModel.create_instence(
+        db_client=request.app.db_client,
+    )
+    project =await project_model.get_project_or_create_one(
+        project_id=project_id
+    )
+
+    if not project:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
+    
+    nlp_controller = NLPController(
+        vectordb_client=request.app.vectordb_client,
+        generation_client=request.app.generation_client,
+        embedding_client=request.app.embedding_client
+    )
+
+    has_records=True
+    page_no=1
+    inserted_items_count=0
+    idx=0
+
+    # create collection if not exists
+    collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+    _ = await request.app.vectordb_client.create_collection(
+                collection_name=collection_name,
+                embedding_size=request.app.embedding_client.embedding_size,
+                do_reset=push_request.do_reset
+                )
+    
+    # setup batching
+    total_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
+    pbar = tqdm(total=total_chunks_count, desc="Indexing Chunks into VectorDB", unit="chunk",position=0)
+
+    while has_records:
+        page_chunks = await chunk_model.get_project_chunks(project_id=project.project_id, page_no=page_no)
+        if len(page_chunks):
+            page_no+=1
+        
+        if not page_chunks or len(page_chunks)==0:
+            has_records=False
+            break
+            
+        chunks_ids = [ s.chunk_id for s in page_chunks]
+        idx += len(page_chunks)
+    
+        is_inserted= await nlp_controller.index_into_vector_db(
+                                            project=project,
+                                            chunks=page_chunks,
+                                            chunks_ids=chunks_ids
+                                             )
+        if not is_inserted:
+            logger.error(f"Failed to index chunks into vector database for project_id: {project_id}, page_no: {page_no}")
+            return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_ERROR.value})
+        
+        inserted_items_count+= len(page_chunks)
+        pbar.update(len(page_chunks))
+    
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                         content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_SUCCESS.value,
+                                  "inserted_items_count": inserted_items_count})
 
 
 @nlp_router.get("/index/info/{project_id}")
@@ -91,16 +154,20 @@ async def search_index(request: Request, project_id: int, search_request: Search
                                                                   "results": [result.dict() for result in search_results]})
 
 
-
+# UPDATED: Self-Correcting RAG endpoint
 @nlp_router.post("/index/answer/{project_id}")
-async def answer_rag_question(request: Request, project_id: int, search_request: SearchRequest):
+async def answer_rag_question(request: Request, project_id: int,
+                               search_request: SearchRequest):
     project_model = await ProjectModel.create_instence(
         db_client=request.app.db_client,
     )
     project = await project_model.get_project_or_create_one(project_id=project_id)
 
     if not project:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value}
+        )
     
     nlp_controller = NLPController(
         vectordb_client=request.app.vectordb_client,
@@ -109,20 +176,30 @@ async def answer_rag_question(request: Request, project_id: int, search_request:
         template_parser=request.app.template_parser
     )
 
-    answer,full_peompt, chat_history = await nlp_controller.answer_rag_question(
+    # use_self_correction=True → New mode
+    answer, metadata, chat_history = await nlp_controller.answer_rag_question(
         project=project,
         query=search_request.text,
-        limit=search_request.limit
+        limit=search_request.limit,
+        use_self_correction=True,
     )
 
     if not answer:
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.RAG_ANSWERING_ERROR.value, "answer": None})
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "signal": ResponseSignal.RAG_ANSWERING_ERROR.value,
+                "answer": None
+            }
+        )
     
-    return JSONResponse(status_code=status.HTTP_200_OK,
-                         content={
-                            "signal": ResponseSignal.RAG_ANSWERING_SUCCESS.value,
-                            "answer": answer,
-                            "full_prompt": full_peompt,
-                            "chat_history": chat_history
-                        }
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "signal": ResponseSignal.RAG_ANSWERING_SUCCESS.value,
+            "answer": answer,
+            # New metadata showing self-correction details
+            "metadata": metadata,
+            "chat_history": chat_history
+        }
     )
