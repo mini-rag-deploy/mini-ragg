@@ -48,11 +48,8 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
     if not project:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
     has_records=True
     page_no=1
@@ -95,6 +92,14 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
         inserted_items_count+= len(page_chunks)
         pbar.update(len(page_chunks))
     
+    # NEW: Rebuild BM25 index after all indexing is complete
+    logger.info(f"[IndexPush] Rebuilding BM25 index for project {project_id}")
+    bm25_rebuilt = await nlp_controller.rebuild_bm25_index(project=project)
+    if bm25_rebuilt:
+        logger.info(f"[IndexPush] BM25 index rebuilt successfully")
+    else:
+        logger.warning(f"[IndexPush] BM25 index rebuild failed (hybrid search may not work optimally)")
+    
     return JSONResponse(status_code=status.HTTP_200_OK,
                          content={"signal": ResponseSignal.INSERT_INTO_VECTORDB_SUCCESS.value,
                                   "inserted_items_count": inserted_items_count})
@@ -110,11 +115,8 @@ async def get_project_index_info(request: Request, project_id: int):
     if not project:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
     collection_info = await nlp_controller.get_vector_db_collection_info(project=project)
 
@@ -134,24 +136,41 @@ async def search_index(request: Request, project_id: int, search_request: Search
     if not project:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client,
-        template_parser=request.app.template_parser
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
-    search_results = await nlp_controller.search_vector_db_collection(
+    # Option 1: Basic search (current - fast, no hybrid/reranking)
+    # search_results = await nlp_controller.search_vector_db_collection(
+    #     project=project,
+    #     text=search_request.text,
+    #     limit=search_request.limit
+    # )
+    
+    # Option 2: Advanced search (NEW - hybrid + RRF + reranking)
+    search_results = await nlp_controller.advanced_retrieve(
         project=project,
-        text=search_request.text,
-        limit=search_request.limit
+        query=search_request.text,
+        top_k=search_request.limit,
     )
 
     if not search_results:
         return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.VECTOR_DB_SEARCH_ERROR.value, "results": []})
     
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.VECTOR_DB_SEARCH_SUCCESS.value,
-                                                                  "results": [result.dict() for result in search_results]})
+    # Convert SearchResult objects to dict format
+    results_dict = [
+        {
+            "text": result.text,
+            "score": result.score,
+            "metadata": result.metadata,
+            "source": result.source,  # Shows if from semantic, bm25, or reranked
+        }
+        for result in search_results
+    ]
+    
+    return JSONResponse(status_code=status.HTTP_200_OK, content={
+        "signal": ResponseSignal.VECTOR_DB_SEARCH_SUCCESS.value,
+        "results": results_dict
+    })
 
 
 # UPDATED: Self-Correcting RAG endpoint
@@ -169,19 +188,17 @@ async def answer_rag_question(request: Request, project_id: int,
             content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value}
         )
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client,
-        template_parser=request.app.template_parser
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
-    # use_self_correction=True → New mode
+    # use_self_correction=True → Self-correcting RAG graph
+    # use_advanced_retrieval=True → Hybrid search + reranking + multi-query
     answer, metadata, chat_history = await nlp_controller.answer_rag_question(
         project=project,
         query=search_request.text,
         limit=search_request.limit,
         use_self_correction=True,
+        use_advanced_retrieval=True,  # Enable all advanced retrieval features
     )
 
     if not answer:

@@ -45,6 +45,23 @@ async def startup_span():
         default_language=settings.DEFAULT_LANG
     )
 
+    # Initialize NLP controller with advanced retrieval features
+    from factories.nlp_factory import build_nlp_controller
+    
+    # Note: collection_name will be created per-project in routes
+    # We'll pass empty string here and set it dynamically per request
+    app.nlp_controller_factory = lambda project_id: build_nlp_controller(
+        vectordb_client=app.vectordb_client,
+        generation_client=app.generation_client,
+        embedding_client=app.embedding_client,
+        template_parser=app.template_parser,
+        collection_name=f"collection_{app.embedding_client.embedding_size}_{project_id}",
+        cohere_api_key=settings.COHERE_API_KEY if hasattr(settings, 'COHERE_API_KEY') else None,
+        enable_hybrid_search=True,
+        enable_reranking=True,
+        enable_multi_query=True,
+    )
+
 async def shutdown_span():
     await app.db_engine.dispose()
     await app.vectordb_client.disconnect()

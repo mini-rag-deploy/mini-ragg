@@ -112,12 +112,8 @@ async def process_request(request: Request, project_id:int , process_request: Pr
             db_client=request.app.db_client
         )
     
-    nlp_controller = NLPController(
-        embedding_client=request.app.embedding_client,
-        generation_client=request.app.generation_client,
-        vectordb_client=request.app.vectordb_client,
-        template_parser=request.app.template_parser
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project_id)
 
     project_files_ids = {}
     if process_request.file_id:
