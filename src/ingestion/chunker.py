@@ -22,7 +22,7 @@ from typing import List, Optional
 
 from .loaders import RawDocument, _detect_language_hint
 
-logger = logging.getLogger(uvicorn.error)
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────

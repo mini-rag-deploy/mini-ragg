@@ -201,15 +201,15 @@ async def _process_project_files(task_instance, project_id: int,
 
         for asset_id, file_id in project_files_ids.items():
 
-            file_content = process_controller.get_file_content(file_id=file_id)
-            print(f"file content {file_content[:1000]}")  # Debug: print the first 100 characters of the file content
+            raw_documents = process_controller.get_file_content(file_id=file_id)
+            logger.info(f"Loaded {len(raw_documents) if raw_documents else 0} raw documents from {file_id}")
 
-            if file_content is None:
+            if raw_documents is None:
                 logger.error(f"Error while processing file: {file_id}")
                 continue
 
             file_chunks = process_controller.process_file_content(
-                file_content=file_content,
+                raw_documents=raw_documents,
                 file_id=file_id,
                 chunk_size=chunk_size,
                 overlap_size=overlap_size
