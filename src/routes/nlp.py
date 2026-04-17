@@ -16,6 +16,7 @@ from models.db_schemes import DataChunk
 from models.db_schemes import Asset
 from models.enums.AssetTypeEnum import AssetTypeEnum
 from tasks.data_indexing import index_data_content
+from factories.nlp_factory import build_contextualizer
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -44,6 +45,8 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
     project =await project_model.get_project_or_create_one(
         project_id=project_id
     )
+
+    contextualizer = build_contextualizer(request.app.generation_client)
 
     if not project:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
@@ -79,6 +82,9 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
             
         chunks_ids = [ s.chunk_id for s in page_chunks]
         idx += len(page_chunks)
+
+        # Chunks → Contextualizer (LLM adds context) → Embed
+        page_chunks = contextualizer.contextualize_chunks(page_chunks)
     
         is_inserted= await nlp_controller.index_into_vector_db(
                                             project=project,

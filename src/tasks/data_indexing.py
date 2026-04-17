@@ -7,9 +7,10 @@ from models.ChunkModel import ChunkModel
 from controllers import NLPController
 from models import ResponseSignal
 from tqdm.auto import tqdm
+from factories.nlp_factory import build_contextualizer
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 @celery_app.task(
                  bind=True, name="tasks.data_indexing.index_data_content",
@@ -47,6 +48,8 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
         project = await project_model.get_project_or_create_one(
             project_id=project_id
         )
+
+        contextualizer = build_contextualizer(generation_client)
 
         if not project:
 
@@ -97,6 +100,9 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
 
             chunks_ids =  [ c.chunk_id for c in page_chunks ]
             idx += len(page_chunks)
+
+            # Chunks → Contextualizer (LLM adds context) → Embed
+            page_chunks = contextualizer.contextualize_chunks(page_chunks)
             
             is_inserted = await nlp_controller.index_into_vector_db(
                 project=project,

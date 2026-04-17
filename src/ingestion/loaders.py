@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Iterator, List, Optional
 from urllib.parse import urlparse
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 
 # ─────────────────────────────────────────────

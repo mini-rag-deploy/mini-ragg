@@ -21,7 +21,7 @@ import logging
 import os
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 
 def build_nlp_controller(
@@ -42,6 +42,8 @@ def build_nlp_controller(
     bm25_b:  float = 0.75,
     # RRF options
     rrf_k: int = 60,
+    enable_hyde: bool = True,
+    hyde_max_chars: int = 800,
     # Feature flags
     enable_hybrid_search: bool = True,
     enable_reranking:     bool = True,
@@ -53,6 +55,20 @@ def build_nlp_controller(
     from retrieval.reranker import Reranker
     from retrieval.multi_query import MultiQueryExpander
 
+    # HyDE
+    hyde_engine = None
+    if enable_hyde:
+        try:
+            from retrieval.hyde import HyDEEngine
+            hyde_engine = HyDEEngine(
+                generation_client=generation_client,
+                embedding_client=embedding_client,
+                max_hypo_chars=hyde_max_chars,
+            )
+            logger.info("[Factory] HyDEEngine initialized")
+        except Exception as exc:
+            logger.warning(f"[Factory] HyDEEngine failed: {exc}")
+
     # ── Hybrid search ──────────────────────────────────────────
     hybrid_engine = None
     if enable_hybrid_search and collection_name:
@@ -63,6 +79,7 @@ def build_nlp_controller(
                 collection_name  = collection_name,
                 bm25_k1          = bm25_k1,
                 bm25_b           = bm25_b,
+                hyde_engine      =hyde_engine,
             )
             logger.info("[Factory] HybridSearchEngine initialized")
         except Exception as exc:
@@ -117,3 +134,27 @@ def build_nlp_controller(
 
     logger.info("[Factory] NLPController ready")
     return controller
+
+def build_contextualizer(
+    generation_client,
+    doc_excerpt_chars: int = 3000,
+    min_chunk_chars:   int = 80,
+    max_concurrency:   int = 5,
+    ):
+
+    from ingestion.contextualizer import ChunkContextualizer
+
+    ctx = ChunkContextualizer(
+        generation_client = generation_client,
+        doc_excerpt_chars = doc_excerpt_chars,
+        min_chunk_chars   = min_chunk_chars,
+        max_concurrency   = max_concurrency,
+    )
+
+    logger.info("[Factory] ChunkContextualizer initialized")
+    
+    return ctx
+
+
+
+

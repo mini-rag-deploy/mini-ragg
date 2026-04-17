@@ -24,7 +24,7 @@ from typing import Dict, List, Optional, Tuple
 from .chunker import ContextAwareChunker, DocumentChunk
 from .loaders import RawDocument
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 
 @dataclass

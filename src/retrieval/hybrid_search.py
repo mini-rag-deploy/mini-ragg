@@ -148,6 +148,7 @@ class HybridSearchEngine:
         collection_name: str,
         bm25_k1:  float = 1.5,
         bm25_b:   float = 0.75,
+        hyde_engine  = None,    # HyDEEngine | None
     ):
         from stores.llm.LLMEnums import DocumentTypeEnums
         self.DocumentTypeEnums = DocumentTypeEnums
@@ -155,12 +156,41 @@ class HybridSearchEngine:
         self.vectordb_client  = vectordb_client
         self.embedding_client = embedding_client
         self.collection_name  = collection_name
+        self.hyde_engine      = hyde_engine
 
         self.bm25 = BM25Index(k1=bm25_k1, b=bm25_b)
 
         # Corpus mirror (needed to map BM25 doc_idx → text + metadata)
         self._corpus_texts:     List[str]  = []
         self._corpus_metadatas: List[dict] = []
+    
+    # ── Get query vector (HyDE → raw fallback) ─
+    def _get_query_vector(self, query: str) -> Optional[list]:
+        """
+        Priority:
+        1. HyDE vector (hypothetical document embedding)
+        2. Raw query embedding
+        """
+        if self.hyde_engine:
+            vector, source = self.hyde_engine.get_hyde_vector(query)
+            if vector:
+                logger.info(f"[HybridSearch] Dense vector source: {source}")
+                return vector
+            logger.warning("[HybridSearch] HyDE failed — falling back to raw embedding")
+ 
+        try:
+            vector = self.embedding_client.embed_text(
+                text=query,
+                document_type=self.DocumentTypeEnums.QUERY.value,
+            )
+            if not vector:
+                return None
+            if isinstance(vector[0], list):
+                return vector[0]
+            return vector
+        except Exception as exc:
+            logger.error(f"[HybridSearch] Raw embedding failed: {exc}")
+            return None
 
     # ── Index management ──────────────────────
     def build_bm25_index(
@@ -181,10 +211,13 @@ class HybridSearchEngine:
         self, query: str, top_k: int
     ) -> List[SearchResult]:
         try:
-            vector = self.embedding_client.embed_text(
-                text=query,
-                document_type=self.DocumentTypeEnums.QUERY.value,
-            )
+
+            vector = self._get_query_vector(query)
+
+            # vector = self.embedding_client.embed_text(
+            #     text=query,
+            #     document_type=self.DocumentTypeEnums.QUERY.value,
+            # )
 
             if not vector or len(vector) == 0:
                 logger.warning("[HybridSearch] Embedding returned empty vector")
