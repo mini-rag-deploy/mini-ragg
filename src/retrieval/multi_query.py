@@ -39,12 +39,18 @@ You are a search-query expansion assistant for a legal document retrieval system
 
 ## Task
 Given the original query below, generate {n} alternative search queries that:
-1. Preserve the original intent exactly.
+1. Preserve the original intent exactly, especially key concepts and relationships.
 2. Use different vocabulary, legal terminology, or sentence structure.
 3. Are written in the SAME language as the original query.
    - Arabic query → all alternatives in Arabic.
    - English query → all alternatives in English.
 4. Cover different angles: synonyms, formal/informal phrasings, broader/narrower scope.
+5. IMPORTANT: Identify and preserve key phrases that define the query's specific focus.
+   - For queries about "information passed between users", include alternatives like:
+     * "information shared with other users"
+     * "data visible to users"
+     * "user-to-user information exchange"
+   - For queries about specific actions or relationships, maintain that specificity.
 
 ## Original Query
 {query}
@@ -141,12 +147,16 @@ class MultiQueryExpander:
         )
 
         try:
+            print("start generat multi quer")
+            logger.info("Sending multi-query prompt to LLM...")
             raw = self.generation_client.generate_text(
                 prompt=prompt,
                 chat_history=[],
                 temperature=0.3,         # slight creativity, not too wild
                 max_output_tokens=512,
             )
+            print("2")
+            logger.info("Received response from LLM.")
 
             variants = _parse_llm_output(raw or "")
 

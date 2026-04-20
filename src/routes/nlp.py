@@ -84,7 +84,7 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
         idx += len(page_chunks)
 
         # Chunks → Contextualizer (LLM adds context) → Embed
-        page_chunks = contextualizer.contextualize_chunks(page_chunks)
+        # page_chunks = contextualizer.contextualize_chunks(page_chunks)
     
         is_inserted= await nlp_controller.index_into_vector_db(
                                             project=project,
@@ -162,13 +162,16 @@ async def search_index(request: Request, project_id: int, search_request: Search
     if not search_results:
         return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.VECTOR_DB_SEARCH_ERROR.value, "results": []})
     
-    # Convert SearchResult objects to dict format
+    # Convert result objects to dict format.
+    # Supports both:
+    # - RetrievedDocument (text, score)
+    # - SearchResult (text, score, metadata, source)
     results_dict = [
         {
-            "text": result.text,
-            "score": result.score,
-            "metadata": result.metadata,
-            "source": result.source,  # Shows if from semantic, bm25, or reranked
+            "text": getattr(result, "text", ""),
+            "score": float(getattr(result, "score", 0.0)),
+            "metadata": getattr(result, "metadata", {}),
+            "source": getattr(result, "source", "semantic"),
         }
         for result in search_results
     ]

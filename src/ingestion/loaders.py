@@ -1,7 +1,7 @@
 # src/ingestion/loaders.py
 """
 Multi-format document loader.
-Supports: PDF, Word (.docx), PowerPoint (.pptx), Images, URLs.
+Supports: PDF, Word (.docx), PowerPoint (.pptx), Text (.txt), Images, URLs.
 
 Handles:
 - Corrupted / password-protected files (graceful skip)
@@ -457,6 +457,49 @@ class ImageLoader:
 
 
 # ─────────────────────────────────────────────
+# Text Loader  (.txt)
+# ─────────────────────────────────────────────
+class TextLoader:
+    """
+    Loads plain text files with encoding fallbacks.
+    """
+
+    ENCODINGS = ("utf-8", "utf-8-sig", "cp1252", "latin-1")
+
+    def load(self, file_path: str | Path) -> List[RawDocument]:
+        path = Path(file_path)
+
+        for encoding in self.ENCODINGS:
+            try:
+                text = path.read_text(encoding=encoding, errors="strict")
+                cleaned = _clean_text(text)
+
+                if not cleaned:
+                    logger.warning(f"[TextLoader] Empty text content: {path.name}")
+                    return []
+
+                return [RawDocument(
+                    text=cleaned,
+                    metadata={
+                        "source":      path.name,
+                        "source_path": str(path),
+                        "source_type": "txt",
+                        "page":        1,
+                        "encoding":    encoding,
+                        "language":    _detect_language_hint(cleaned),
+                    }
+                )]
+            except UnicodeDecodeError:
+                continue
+            except Exception as exc:
+                logger.error(f"[TextLoader] Cannot read {path.name}: {exc}")
+                return []
+
+        logger.error(f"[TextLoader] Could not decode file with supported encodings: {path.name}")
+        return []
+
+
+# ─────────────────────────────────────────────
 # URL Loader
 # ─────────────────────────────────────────────
 class URLLoader:
@@ -546,6 +589,7 @@ class DocumentLoader:
     """
 
     LOADERS = {
+        ".txt":  TextLoader,
         ".pdf":  PDFLoader,
         ".docx": WordLoader,
         ".doc":  WordLoader,

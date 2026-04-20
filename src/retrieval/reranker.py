@@ -28,6 +28,7 @@ Edge cases handled
 from __future__ import annotations
 
 import logging
+import re
 from typing import List, Optional
 
 from .hybrid_search import SearchResult
@@ -164,6 +165,47 @@ class CohereReranker:
         self.model      = model
         self.batch_size = batch_size
 
+    def _simplify_query(self, query: str) -> str:
+        """
+        Simplify query for better reranking by focusing on the core question.
+        Removes context prefixes and emphasizes key relationships.
+        """
+        import re
+        
+        # Remove common context prefixes
+        patterns = [
+            r"^Consider\s+[\"']?[^\"']+[\"']?'?s?\s+privacy\s+policy[;:,]\s*",
+            r"^According\s+to\s+[\"']?[^\"']+[\"']?[;:,]\s*",
+            r"^In\s+[\"']?[^\"']+[\"']?'?s?\s+policy[;:,]\s*",
+            r"^Based\s+on\s+[\"']?[^\"']+[\"']?[;:,]\s*",
+        ]
+        
+        simplified = query
+        for pattern in patterns:
+            simplified = re.sub(pattern, "", simplified, flags=re.IGNORECASE)
+        
+        # Emphasize key relationships by adding explicit keywords
+        # This helps the reranker understand the specific focus
+        key_phrases = {
+            r'\b(passed|shared|exchanged|transferred)\s+(between|among|with)\s+users\b': 'user-to-user information sharing',
+            r'\b(visible|accessible|available)\s+to\s+(all\s+)?users\b': 'information visible to users',
+            r'\b(public|publicly\s+available)\b.*\busers?\b': 'public user information',
+        }
+        
+        for pattern, emphasis in key_phrases.items():
+            if re.search(pattern, simplified, re.IGNORECASE):
+                # Add emphasis to help reranker focus
+                simplified = f"{simplified} (focus: {emphasis})"
+                logger.debug(f"[CohereReranker] Added emphasis: {emphasis}")
+                break
+        
+        # If we removed something and the result is still meaningful, use it
+        if simplified != query and len(simplified.strip()) > 10:
+            logger.debug(f"[CohereReranker] Simplified query: '{query}' -> '{simplified}'")
+            return simplified.strip()
+        
+        return query
+
     def rerank(
         self,
         query:      str,
@@ -177,11 +219,14 @@ class CohereReranker:
             import cohere
             client = cohere.Client(self.api_key)
 
+            # Simplify query to focus on core question
+            simplified_query = self._simplify_query(query)
+
             # Cohere has a max of 1000 docs per call — chunk if needed
             texts = [_truncate(doc.text) for doc in candidates]
 
             response = client.rerank(
-                query     = _truncate(query, 512),
+                query     = _truncate(simplified_query, 512),
                 documents = texts,
                 model     = self.model,
                 top_n     = min(top_k, len(candidates)),

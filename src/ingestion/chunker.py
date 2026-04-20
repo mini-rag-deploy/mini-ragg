@@ -44,11 +44,11 @@ class DocumentChunk:
 # Sentence splitters (language-aware)
 # ─────────────────────────────────────────────
 # Arabic sentence enders: full stop, Arabic comma variations, question mark, exclamation
-_ARABIC_SENTENCE_END = re.compile(r"(?<=[.!?؟،\u06D4])\s+")
+_ARABIC_SENTENCE_END = re.compile(r"(?<=[.!?؟،\u06D4\u061F])\s+")
 
-# English sentence ender
+# English sentence ender (improved to handle more cases)
 _ENGLISH_SENTENCE_END = re.compile(
-    r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s+"
+    r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<!Mr\.)(?<!Mrs\.)(?<!Dr\.)(?<!Prof\.)(?<!Inc\.)(?<!Ltd\.)(?<!Co\.)(?<!Corp\.)(?<!vs\.)(?<!etc\.)(?<=\.|\?|!)\s+"
 )
 
 # Structural cues that should never be split from the content that follows
@@ -63,16 +63,32 @@ _HEADING_PATTERN = re.compile(
 
 
 def _split_sentences(text: str, language: str) -> List[str]:
-    """Split text into sentences respecting language."""
+    """Split text into sentences respecting language and preserving natural boundaries."""
     if language == "arabic":
         parts = _ARABIC_SENTENCE_END.split(text)
     elif language == "english":
         parts = _ENGLISH_SENTENCE_END.split(text)
     else:
-        # Mixed: use both patterns
-        parts = re.split(r"(?<=[.!?؟،])\s+", text)
+        # Mixed: use comprehensive pattern that handles both languages
+        # Enhanced pattern that respects more punctuation marks
+        parts = re.split(r"(?<=[.!?؟،\u06D4\u061F])\s+", text)
 
-    return [p.strip() for p in parts if p.strip()]
+    # Clean up and filter out empty parts
+    cleaned_parts = []
+    for p in parts:
+        p = p.strip()
+        if p:
+            # Don't split if the "sentence" is too short (likely a fragment)
+            if len(p) < 10 and not re.match(r'^[A-Z][a-z]*\.$', p):
+                # Try to merge with previous sentence if it exists
+                if cleaned_parts:
+                    cleaned_parts[-1] += " " + p
+                else:
+                    cleaned_parts.append(p)
+            else:
+                cleaned_parts.append(p)
+    
+    return cleaned_parts
 
 
 def _extract_section_heading(text: str) -> str:
@@ -107,8 +123,8 @@ class ContextAwareChunker:
 
     def __init__(
         self,
-        chunk_size:     int  = 512,
-        chunk_overlap:  int  = 64,
+        chunk_size:     int  = 700,
+        chunk_overlap:  int  = 200,
         min_chunk_size: int  = 60,
         deduplicate:    bool = True,
     ):
@@ -189,7 +205,7 @@ class ContextAwareChunker:
     # ── Internal grouping logic ───────────────
     def _group_sentences(self, sentences: List[str]) -> List[str]:
         """
-        Greedily pack sentences into chunks.
+        Greedily pack sentences into chunks, respecting natural boundaries.
         When a chunk would exceed chunk_size, start a new one
         but carry `chunk_overlap` characters from the previous chunk.
         """
@@ -200,20 +216,23 @@ class ContextAwareChunker:
         for sentence in sentences:
             sentence_len = len(sentence)
 
-            # Single sentence larger than chunk_size → emit as its own chunk
+            # Single sentence larger than chunk_size → try to split it intelligently
             if sentence_len > self.chunk_size and not current_parts:
-                chunks.append(sentence)
+                # Try to split long sentence at natural boundaries
+                split_sentence = self._split_long_sentence(sentence)
+                chunks.extend(split_sentence)
                 continue
 
+            # Check if adding this sentence would exceed chunk size
             if current_len + sentence_len > self.chunk_size and current_parts:
                 # Emit current chunk
                 chunk_text = " ".join(current_parts)
                 chunks.append(chunk_text)
 
-                # Overlap: keep tail of previous chunk
-                overlap_text = chunk_text[-self.chunk_overlap:]
+                # Overlap: keep tail of previous chunk, but respect word boundaries
+                overlap_text = self._get_smart_overlap(chunk_text)
                 current_parts = [overlap_text] if overlap_text.strip() else []
-                current_len   = len(overlap_text)
+                current_len = len(overlap_text)
 
             current_parts.append(sentence)
             current_len += sentence_len + 1  # +1 for space
@@ -223,3 +242,63 @@ class ContextAwareChunker:
             chunks.append(" ".join(current_parts))
 
         return chunks
+
+    def _split_long_sentence(self, sentence: str) -> List[str]:
+        """Split a long sentence at natural boundaries (commas, semicolons, etc.)"""
+        if len(sentence) <= self.chunk_size:
+            return [sentence]
+        
+        # Try to split at natural punctuation marks
+        split_points = []
+        for match in re.finditer(r'[,;:\u060C\u061B]\s+', sentence):
+            split_points.append(match.end())
+        
+        if not split_points:
+            # Fallback: split at word boundaries
+            words = sentence.split()
+            if len(words) > 1:
+                mid_point = len(words) // 2
+                part1 = " ".join(words[:mid_point])
+                part2 = " ".join(words[mid_point:])
+                return [part1, part2]
+        else:
+            # Find the best split point closest to the middle
+            mid_point = len(sentence) // 2
+            best_split = min(split_points, key=lambda x: abs(x - mid_point))
+            part1 = sentence[:best_split].strip()
+            part2 = sentence[best_split:].strip()
+            if part1 and part2:
+                return [part1, part2]
+        
+        return [sentence]
+
+    def _get_smart_overlap(self, chunk_text: str) -> str:
+        """Get overlap text that respects word and sentence boundaries."""
+        if len(chunk_text) <= self.chunk_overlap:
+            return chunk_text
+        
+        # Start from the desired overlap position and work backwards to find a good break
+        start_pos = len(chunk_text) - self.chunk_overlap
+        
+        # Look for sentence boundaries first (working forward from start_pos)
+        for i in range(start_pos, len(chunk_text)):
+            if chunk_text[i] in '.!?؟\u06D4\u061F' and i + 1 < len(chunk_text) and chunk_text[i + 1].isspace():
+                return chunk_text[i + 2:].strip()
+        
+        # Then look for word boundaries (working forward from start_pos)
+        for i in range(start_pos, len(chunk_text)):
+            if chunk_text[i].isspace():
+                return chunk_text[i + 1:].strip()
+        
+        # If no good break point found forward, work backwards from the end
+        # to find the last complete word that fits within overlap size
+        overlap_text = chunk_text[-self.chunk_overlap:]
+        
+        # If the overlap starts with a partial word, find the first complete word
+        if not overlap_text[0].isspace():
+            # Find the first space to start from a complete word
+            space_idx = overlap_text.find(' ')
+            if space_idx != -1:
+                overlap_text = overlap_text[space_idx + 1:]
+        
+        return overlap_text.strip()

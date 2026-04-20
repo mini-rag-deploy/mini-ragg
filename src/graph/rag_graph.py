@@ -41,7 +41,7 @@ def build_rag_graph(
     nlp_controller,
     project,
     use_advanced_retrieval: bool = True,
-    max_iterations:         int  = 3,
+    max_iterations:         int  = 1,
     retrieval_top_k:        int  = 5,
 ):
     """
@@ -113,6 +113,7 @@ def build_rag_graph(
                 question=state["question"],
             )
             answer = gen.generate_text(prompt=prompt, chat_history=[])
+            logger.info("[Graph] No context answer: " + answer)
             return {**state, "answer": answer}
 
         context = "\n\n---\n\n".join([
@@ -136,6 +137,7 @@ def build_rag_graph(
             question=state["question"],
         )
         answer = gen.generate_text(prompt=prompt, chat_history=chat_history)
+        logger.info("[Graph] No context answer: " + answer)
         return {**state, "answer": answer}
 
     # ── Node: Rewrite query ───────────────────────────────────

@@ -273,9 +273,12 @@ class NLPController(BaseController):
 
         # ── Step 4: Cross-encoder re-ranking ──────────────────
         if self.reranker and fused:
-            logger.info(f"[NLPController] Re-ranking top {len(fused)} fused results")
+            # Increase candidates for reranking to improve recall
+            # Rerank more candidates than requested to ensure good results surface
+            rerank_candidates = min(len(fused), top_k * 3)  # 3x for better coverage
+            logger.info(f"[NLPController] Re-ranking top {rerank_candidates} fused results")
             try:
-                reranked = self.reranker.rerank(query, fused, top_k=top_k)
+                reranked = self.reranker.rerank(query, fused[:rerank_candidates], top_k=top_k)
                 logger.info(f"[NLPController] After re-ranking: {len(reranked)} docs")
                 return reranked
             except Exception as exc:
@@ -305,6 +308,9 @@ class NLPController(BaseController):
         -------
         (answer, metadata_or_full_prompt, chat_history)
         """
+        # use_self_correction = False
+        # use_advanced_retrieval = False
+
         if use_self_correction:
             logger.info("[NLPController] Using self-correcting RAG graph for question answering")
             return await self._answer_with_graph(
@@ -356,14 +362,22 @@ class NLPController(BaseController):
         query:   str,
         limit:   int = 10,
     ):
-        answer, full_prompt, chat_history = None, None, None
+        answer, chat_history = None, None
 
         retrieved = await self.search_vector_db_collection(
             project=project, text=query, limit=limit
         )
 
+        metadata = {
+            "iterations": 0,
+            "docs_used": len(retrieved),
+            "mode": "basic",
+            "advanced_retrieval": False,
+            "documents": retrieved,
+        }
+
         if not retrieved:
-            return answer, full_prompt, chat_history
+            return answer, metadata, chat_history
 
         system_prompt = self.template_parser.get("rag", "system_prompt")
         document_prompt = "\n".join([
@@ -387,4 +401,4 @@ class NLPController(BaseController):
             chat_history=chat_history,
         )
 
-        return answer, full_prompt, chat_history
+        return answer, metadata, chat_history

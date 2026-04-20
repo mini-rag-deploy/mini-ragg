@@ -33,6 +33,10 @@ Rules:
 - Do NOT say "According to..." or "The answer is..." — write the passage directly.
 - Do NOT add citations or article numbers you don't know — keep it plausible.
 - If the question is in Arabic, the passage must be in Arabic.
+- IMPORTANT: Pay special attention to key phrases and relationships in the question.
+  * If the question asks about "information passed between users", your answer should explicitly mention user-to-user information sharing, visibility to other users, or data exchange between users.
+  * If the question asks about specific actions or relationships, maintain that specificity in your answer.
+  * Use synonyms and related terms that would appear in actual documents (e.g., "shared with", "visible to", "disclosed to", "accessible by").
 
 Question: {query}
 

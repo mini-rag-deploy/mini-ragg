@@ -63,6 +63,7 @@ class OpenAIProvider(LLMInterface):
         if not self.generation_model_id:
             self.logger.error("Generation model ID is not set.")
             return None
+        self.logger.info(f"Generation model ID openai is set")
         max_output_tokens = max_output_tokens if max_output_tokens is not None else self.default_output_max_tokens
         temperature = temperature if temperature is not None else self.default_temperature
         

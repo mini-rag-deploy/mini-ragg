@@ -279,40 +279,61 @@ class HybridChunker(ContextAwareChunker):
     def _split_text_into_sections(self, text: str) -> List[str]:
         """
         Split text into logical sections using multiple strategies.
-        Returns the best split found.
+        Returns the best split found, prioritizing natural boundaries.
         """
-        # Strategy 1: Split by double newlines (paragraphs)
+        # Strategy 1: Split by double newlines (paragraphs) - most natural
         paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
         if len(paragraphs) > 1:
             return paragraphs
         
-        # Strategy 2: Split by single newlines (lines)
+        # Strategy 2: Split by single newlines (lines) - preserve line structure
         lines = [line.strip() for line in text.split('\n') if line.strip()]
         if len(lines) > 3:  # Only use if we have enough lines
             return lines
         
-        # Strategy 3: Split by sentences (periods followed by space/newline)
+        # Strategy 3: Split by sentences (periods followed by space/newline) - preserve sentence boundaries
         import re
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        # Enhanced sentence splitting that handles more punctuation and languages
+        sentences = re.split(r'(?<=[.!?؟،\u06D4])\s+', text)
         sentences = [s.strip() for s in sentences if s.strip()]
         if len(sentences) > 2:
             return sentences
         
-        # Strategy 4: Split by length (as fallback)
-        if len(text) > 200:
-            # Split into roughly equal parts
-            mid_point = len(text) // 2
-            # Find a good break point near the middle (space or punctuation)
-            break_point = mid_point
-            for i in range(mid_point - 50, mid_point + 50):
-                if i < len(text) and text[i] in ' .!?\n':
-                    break_point = i
-                    break
+        # Strategy 4: Smart length-based splitting (improved fallback)
+        if len(text) > 500:  # Increased threshold for better chunks
+            # Try to find natural break points in order of preference
+            break_points = []
             
-            part1 = text[:break_point].strip()
-            part2 = text[break_point:].strip()
-            if part1 and part2:
-                return [part1, part2]
+            # Look for paragraph breaks first (double newlines)
+            for match in re.finditer(r'\n\n', text):
+                break_points.append(match.start())
+            
+            # Then single newlines
+            if not break_points:
+                for match in re.finditer(r'\n', text):
+                    break_points.append(match.start())
+            
+            # Then sentence endings
+            if not break_points:
+                for match in re.finditer(r'[.!?؟،\u06D4]\s+', text):
+                    break_points.append(match.end())
+            
+            # Then word boundaries (spaces)
+            if not break_points:
+                for match in re.finditer(r'\s+', text):
+                    break_points.append(match.start())
+            
+            if break_points:
+                # Find the break point closest to the middle
+                mid_point = len(text) // 2
+                best_break = min(break_points, key=lambda x: abs(x - mid_point))
+                
+                # Make sure we don't create tiny chunks
+                if best_break > 100 and (len(text) - best_break) > 100:
+                    part1 = text[:best_break].strip()
+                    part2 = text[best_break:].strip()
+                    if part1 and part2:
+                        return [part1, part2]
         
         # Fallback: return as single section
         return [text]
@@ -401,6 +422,7 @@ class HybridChunker(ContextAwareChunker):
             metadata=hybrid_doc.metadata
         )
         chunks = self.chunk_document(temp_doc)
+        print("done chunkdocument")
         
         # Mark as hybrid for consistency
         for chunk in chunks:
