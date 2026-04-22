@@ -7,9 +7,10 @@ from models.ChunkModel import ChunkModel
 from controllers import NLPController
 from models import ResponseSignal
 from tqdm.auto import tqdm
+from factories.nlp_factory import build_contextualizer
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 @celery_app.task(
                  bind=True, name="tasks.data_indexing.index_data_content",
@@ -48,11 +49,15 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
             project_id=project_id
         )
 
+        contextualizer = build_contextualizer(generation_client)
+
         if not project:
 
             task_instance.update_state(
                 state="FAILURE",
                 meta={
+                    "exc_type": "Exception",
+                    "exc_message": f"No project found for project_id: {project_id}",
                     "signal": ResponseSignal.PROJECT_NOT_FOUND.value
                 }
             )
@@ -64,6 +69,23 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
             generation_client=generation_client,
             embedding_client=embedding_client,
             template_parser=template_parser,
+        )
+        
+        # Use factory to get controller with advanced retrieval features
+        from factories.nlp_factory import build_nlp_controller
+        nlp_controller = build_nlp_controller(
+            vectordb_client=vectordb_client,
+            generation_client=generation_client,
+            embedding_client=embedding_client,
+            template_parser=template_parser,
+            collection_name=f"collection_{embedding_client.embedding_size}_{project_id}",
+            cohere_api_key=getattr(get_settings(), 'COHERE_API_KEY', None),
+            cohere_backup_key=getattr(get_settings(), 'COHERE_API_KEY_BACKUP', None),
+            cohere_backup_key2=getattr(get_settings(), 'COHERE_API_KEY_BACKUP2', None),
+            cohere_backup_key3=getattr(get_settings(), 'COHERE_API_KEY_BACKUP3', None),
+            enable_hybrid_search=True,
+            enable_reranking=True,
+            enable_multi_query=True,
         )
 
         has_records = True
@@ -95,6 +117,9 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
 
             chunks_ids =  [ c.chunk_id for c in page_chunks ]
             idx += len(page_chunks)
+
+            # Chunks → Contextualizer (LLM adds context) → Embed
+            # page_chunks = contextualizer.contextualize_chunks(page_chunks)
             
             is_inserted = await nlp_controller.index_into_vector_db(
                 project=project,
@@ -108,6 +133,8 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
                 task_instance.update_state(
                     state="FAILURE",
                     meta={
+                        "exc_type": "Exception",
+                        "exc_message": f"Cannot insert into vectorDB | project_id: {project_id}",
                         "signal": ResponseSignal.INSERT_INTO_VECTORDB_ERROR.value
                     }
                 )
@@ -117,6 +144,13 @@ async def _index_data_content(task_instance, project_id: int, do_reset: int):
             pbar.update(len(page_chunks))
             inserted_items_count += len(page_chunks)
         
+        # NEW: Rebuild BM25 index after all indexing is complete
+        logger.info(f"[IndexPush] Rebuilding BM25 index for project {project_id}")
+        bm25_rebuilt = await nlp_controller.rebuild_bm25_index(project=project)
+        if bm25_rebuilt:
+            logger.info(f"[IndexPush] BM25 index rebuilt successfully")
+        else:
+            logger.warning(f"[IndexPush] BM25 index rebuild failed (hybrid search may not work optimally)")
 
         task_instance.update_state(
             state="SUCCESS",

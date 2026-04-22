@@ -108,6 +108,23 @@ async def _process_project_files(task_instance, project_id: int,
             embedding_client=embedding_client,
             template_parser=template_parser,
         )
+        
+        # Use factory to get controller with advanced retrieval features
+        from factories.nlp_factory import build_nlp_controller
+        nlp_controller = build_nlp_controller(
+            vectordb_client=vectordb_client,
+            generation_client=generation_client,
+            embedding_client=embedding_client,
+            template_parser=template_parser,
+            collection_name=f"collection_{embedding_client.embedding_size}_{project_id}",
+            cohere_api_key=getattr(get_settings(), 'COHERE_API_KEY', None),
+            cohere_backup_key=getattr(get_settings(), 'COHERE_API_KEY_BACKUP', None),
+            cohere_backup_key2=getattr(get_settings(), 'COHERE_API_KEY_BACKUP2', None),
+            cohere_backup_key3=getattr(get_settings(), 'COHERE_API_KEY_BACKUP3', None),
+            enable_hybrid_search=True,
+            enable_reranking=True,
+            enable_multi_query=True,
+        )
 
         asset_model = await AssetModel.create_instence(
                 db_client=db_client
@@ -124,6 +141,8 @@ async def _process_project_files(task_instance, project_id: int,
                 task_instance.update_state(
                     state="FAILURE",
                     meta={
+                        "exc_type": "Exception",
+                        "exc_message": f"No assets for file: {file_id}",
                         "signal": ResponseSignal.FILE_ID_ERROR.value,
                     }
                 )
@@ -161,6 +180,8 @@ async def _process_project_files(task_instance, project_id: int,
             task_instance.update_state(
                 state="FAILURE",
                 meta={
+                    "exc_type": "Exception",
+                    "exc_message": "No files found for project",
                     "signal": ResponseSignal.NO_FILES_ERROR.value,
                 }
             )
@@ -197,14 +218,15 @@ async def _process_project_files(task_instance, project_id: int,
 
         for asset_id, file_id in project_files_ids.items():
 
-            file_content = process_controller.get_file_content(file_id=file_id)
+            raw_documents = process_controller.get_file_content(file_id=file_id)
+            logger.info(f"Loaded {len(raw_documents) if raw_documents else 0} raw documents from {file_id}")
 
-            if file_content is None:
+            if raw_documents is None:
                 logger.error(f"Error while processing file: {file_id}")
                 continue
 
             file_chunks = process_controller.process_file_content(
-                file_content=file_content,
+                raw_documents=raw_documents,
                 file_id=file_id,
                 chunk_size=chunk_size,
                 overlap_size=overlap_size

@@ -16,6 +16,7 @@ from models.db_schemes import DataChunk
 from models.db_schemes import Asset
 from models.enums.AssetTypeEnum import AssetTypeEnum
 from tasks.data_indexing import index_data_content
+from factories.nlp_factory import build_contextualizer
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -47,11 +48,8 @@ async def get_project_index_info(request: Request, project_id: int):
     if not project:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
     collection_info = await nlp_controller.get_vector_db_collection_info(project=project)
 
@@ -71,58 +69,90 @@ async def search_index(request: Request, project_id: int, search_request: Search
     if not project:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client,
-        template_parser=request.app.template_parser
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
-    search_results = await nlp_controller.search_vector_db_collection(
+    # Option 1: Basic search (current - fast, no hybrid/reranking)
+    # search_results = await nlp_controller.search_vector_db_collection(
+    #     project=project,
+    #     text=search_request.text,
+    #     limit=search_request.limit
+    # )
+    
+    # Option 2: Advanced search (NEW - hybrid + RRF + reranking)
+    search_results = await nlp_controller.advanced_retrieve(
         project=project,
-        text=search_request.text,
-        limit=search_request.limit
+        query=search_request.text,
+        top_k=search_request.limit,
     )
 
     if not search_results:
         return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.VECTOR_DB_SEARCH_ERROR.value, "results": []})
     
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.VECTOR_DB_SEARCH_SUCCESS.value,
-                                                                  "results": [result.dict() for result in search_results]})
+    # Convert result objects to dict format.
+    # Supports both:
+    # - RetrievedDocument (text, score)
+    # - SearchResult (text, score, metadata, source)
+    results_dict = [
+        {
+            "text": getattr(result, "text", ""),
+            "score": float(getattr(result, "score", 0.0)),
+            "metadata": getattr(result, "metadata", {}),
+            "source": getattr(result, "source", "semantic"),
+        }
+        for result in search_results
+    ]
+    
+    return JSONResponse(status_code=status.HTTP_200_OK, content={
+        "signal": ResponseSignal.VECTOR_DB_SEARCH_SUCCESS.value,
+        "results": results_dict
+    })
 
 
-
+# UPDATED: Self-Correcting RAG endpoint
 @nlp_router.post("/index/answer/{project_id}")
-async def answer_rag_question(request: Request, project_id: int, search_request: SearchRequest):
+async def answer_rag_question(request: Request, project_id: int,
+                               search_request: SearchRequest):
     project_model = await ProjectModel.create_instence(
         db_client=request.app.db_client,
     )
     project = await project_model.get_project_or_create_one(project_id=project_id)
 
     if not project:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value})
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"signal": ResponseSignal.PROJECT_NOT_FOUND.value}
+        )
     
-    nlp_controller = NLPController(
-        vectordb_client=request.app.vectordb_client,
-        generation_client=request.app.generation_client,
-        embedding_client=request.app.embedding_client,
-        template_parser=request.app.template_parser
-    )
+    # Use factory to get controller with advanced retrieval features
+    nlp_controller = request.app.nlp_controller_factory(project.project_id)
 
-    answer,full_peompt, chat_history = await nlp_controller.answer_rag_question(
+    # use_self_correction=True → Self-correcting RAG graph
+    # use_advanced_retrieval=True → Hybrid search + reranking + multi-query
+    answer, metadata, chat_history = await nlp_controller.answer_rag_question(
         project=project,
         query=search_request.text,
-        limit=search_request.limit
+        limit=search_request.limit,
+        use_self_correction=True,
+        use_advanced_retrieval=True,  # Enable all advanced retrieval features
     )
 
     if not answer:
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"signal": ResponseSignal.RAG_ANSWERING_ERROR.value, "answer": None})
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "signal": ResponseSignal.RAG_ANSWERING_ERROR.value,
+                "answer": None
+            }
+        )
     
-    return JSONResponse(status_code=status.HTTP_200_OK,
-                         content={
-                            "signal": ResponseSignal.RAG_ANSWERING_SUCCESS.value,
-                            "answer": answer,
-                            "full_prompt": full_peompt,
-                            "chat_history": chat_history
-                        }
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "signal": ResponseSignal.RAG_ANSWERING_SUCCESS.value,
+            "answer": answer,
+            # New metadata showing self-correction details
+            "metadata": metadata,
+            "chat_history": chat_history
+        }
     )

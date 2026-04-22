@@ -45,6 +45,25 @@ async def startup_span():
         default_language=settings.DEFAULT_LANG
     )
 
+    # Initialize NLP controller with advanced retrieval features
+    from factories.nlp_factory import build_nlp_controller
+    
+    
+    app.nlp_controller_factory = lambda project_id: build_nlp_controller(
+        vectordb_client=app.vectordb_client,
+        generation_client=app.generation_client,
+        embedding_client=app.embedding_client,
+        template_parser=app.template_parser,
+        collection_name=f"collection_{app.embedding_client.embedding_size}_{project_id}",
+        cohere_api_key=settings.COHERE_API_KEY if hasattr(settings, 'COHERE_API_KEY') else None,
+        cohere_backup_key=settings.COHERE_API_KEY_BACKUP if hasattr(settings, 'COHERE_API_KEY_BACKUP') else None,
+        cohere_backup_key2=settings.COHERE_API_KEY_BACKUP2 if hasattr(settings, 'COHERE_API_KEY_BACKUP2') else None,
+        cohere_backup_key3=settings.COHERE_API_KEY_BACKUP3 if hasattr(settings, 'COHERE_API_KEY_BACKUP3') else None,
+        enable_hybrid_search=True,
+        enable_reranking=True,
+        enable_multi_query=True,
+    )
+
 async def shutdown_span():
     await app.db_engine.dispose()
     await app.vectordb_client.disconnect()
@@ -55,25 +74,3 @@ app.on_event("shutdown")(shutdown_span)
 app.include_router(base.base_router)
 app.include_router(data.data_router)
 app.include_router(nlp.nlp_router)
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-# @app.get("/welcome")
-# async def welcome():
-
-    
-
-#     return {
-#         "message": "Welcome to the FastAPI application!"
-#     }

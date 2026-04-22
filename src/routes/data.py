@@ -78,15 +78,14 @@ async def upload_data(request: Request, project_id: int, file: UploadFile,
     return JSONResponse(
             content={
                 "signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
-                "file_id": str(asset_record.asset_id),
+                "file_id": str(asset_record.asset_name),
             }
         )
 
 @data_router.post("/process/{project_id}")
 async def process_request(request: Request, project_id:int , process_request: ProcessRequest):
 
-
-    chunk_size = process_request.chunck_size
+    chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
 
@@ -110,7 +109,7 @@ async def process_request(request: Request, project_id:int , process_request: Pr
 async def process_and_push_request(request: Request, project_id:int , process_request: ProcessRequest):
 
 
-    chunk_size = process_request.chunck_size
+    chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
 
