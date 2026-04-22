@@ -1,18 +1,5 @@
-# src/factories/nlp_factory.py
 """
 Factory that wires all retrieval components together.
-Call build_nlp_controller() in your FastAPI app startup.
-
-Usage in main.py / app startup:
-    from factories.nlp_factory import build_nlp_controller
-    app.nlp_controller = build_nlp_controller(
-        vectordb_client   = app.vectordb_client,
-        generation_client = app.generation_client,
-        embedding_client  = app.embedding_client,
-        template_parser   = app.template_parser,
-        collection_name   = f"collection_{embedding_size}_{project_id}",
-        cohere_api_key    = settings.COHERE_API_KEY,
-    )
 """
 
 from __future__ import annotations
@@ -34,6 +21,9 @@ def build_nlp_controller(
     reranker_model:  str = "BAAI/bge-reranker-v2-m3",
     reranker_device: str = "cpu",
     cohere_api_key:  Optional[str] = None,
+    cohere_backup_key: Optional[str] = None,  # NEW: Backup keys for reranker
+    cohere_backup_key2: Optional[str] = None,
+    cohere_backup_key3: Optional[str] = None,
     prefer_cohere:   bool = True,
     # Multi-query options
     n_query_variants: int = 3,
@@ -101,6 +91,9 @@ def build_nlp_controller(
                 model_name     = reranker_model,
                 device         = reranker_device,
                 cohere_api_key = cohere_api_key or os.getenv("COHERE_API_KEY"),
+                cohere_backup_key = cohere_backup_key or os.getenv("COHERE_API_KEY_BACKUP"),
+                cohere_backup_key2 = cohere_backup_key2 or os.getenv("COHERE_API_KEY_BACKUP2"),
+                cohere_backup_key3 = cohere_backup_key3 or os.getenv("COHERE_API_KEY_BACKUP3"),
                 prefer_cohere  = prefer_cohere,
             )
             logger.info(f"[Factory] Reranker initialized (model={reranker_model})")

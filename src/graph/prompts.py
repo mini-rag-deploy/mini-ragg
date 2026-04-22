@@ -1,4 +1,3 @@
-# src/graph/prompts.py
 
 """
 Centralized prompts for the Self-Correcting RAG pipeline.

@@ -1,7 +1,5 @@
-# src/graph/rag_graph.py
 """
 Self-correcting RAG graph (LangGraph).
-Updated to use advanced_retrieve() when available.
 """
 
 from __future__ import annotations
@@ -23,26 +21,24 @@ from .prompts import (
 logger = logging.getLogger("uvicorn.error")
 
 
-# ─────────────────────────────────────────────
 # Graph state
-# ─────────────────────────────────────────────
 class RAGState(TypedDict):
-    question:    str
-    documents:   List[Any]
-    answer:      Optional[str]
-    iterations:  int
-    grade_reason: Optional[str]
+    question:      str
+    documents:     List[Any]
+    answer:        Optional[str]
+    iterations:    int
+    grade_reason:  Optional[str]
+    question_type: Optional[str]
 
 
-# ─────────────────────────────────────────────
 # Builder
-# ─────────────────────────────────────────────
 def build_rag_graph(
     nlp_controller,
     project,
     use_advanced_retrieval: bool = True,
     max_iterations:         int  = 1,
     retrieval_top_k:        int  = 5,
+    question_type:          str  = None,  # NEW: question type
 ):
     """
     Parameters
@@ -87,7 +83,7 @@ def build_rag_graph(
         for doc in state["documents"]:
             text = doc.text if hasattr(doc, "text") else str(doc)
             prompt = RETRIEVAL_GRADE_PROMPT.format(
-                document=text[:2000],   # cap to avoid token overflow
+                document=text, 
                 question=state["question"],
             )
             try:
@@ -98,7 +94,7 @@ def build_rag_graph(
                     logger.debug(f"[Graph] Doc rejected: {result.get('reason', '')}")
             except Exception as exc:
                 logger.warning(f"[Graph] Grading error (keeping doc): {exc}")
-                filtered.append(doc)   # keep on error — safer than discarding
+                filtered.append(doc)  
 
         logger.info(f"[Graph] Kept {len(filtered)}/{len(state['documents'])} docs")
         return {**state, "documents": filtered}
@@ -116,28 +112,49 @@ def build_rag_graph(
             logger.info("[Graph] No context answer: " + answer)
             return {**state, "answer": answer}
 
-        context = "\n\n---\n\n".join([
-            doc.text if hasattr(doc, "text") else str(doc)
-            for doc in state["documents"]
+        # Use template parser for question-type-specific prompts
+        template_parser = nlp_controller.template_parser
+        
+        # Get system prompt
+        system_prompt = template_parser.get("rag", "system_prompt")
+        
+        # Build document context
+        document_prompt = "\n".join([
+            template_parser.get("rag", "document_prompt", {
+                "doc_num":    i + 1,
+                "chunk_text": doc.text if hasattr(doc, "text") else str(doc),
+            })
+            for i, doc in enumerate(state["documents"])
         ])
-
-        system_prompt = (
-            "You are an expert assistant. "
-            "Answer only from the provided context."
-        )
+        
+        # Select footer based on question type
+        footer_key = "footer_default"
+        q_type = state.get("question_type")
+        if q_type:
+            type_to_footer = {
+                "factual": "footer_factual",
+                "analytical": "footer_analytical",
+                "comparative": "footer_comparative",
+                "summarization": "footer_summarization",
+                "hallucination": "footer_hallucination",
+            }
+            footer_key = type_to_footer.get(q_type.lower(), "footer_default")
+        
+        footer_prompt = template_parser.get("rag", footer_key, {"query": state["question"]})
+        
+        # Build chat history
         chat_history = [
             gen.construct_prompt(
                 prompt=system_prompt,
                 role=gen.enums.SYSTEM.value,
             )
         ]
-
-        prompt = RAG_PROMPT.format(
-            context=context[:6000],   # guard against huge contexts
-            question=state["question"],
-        )
-        answer = gen.generate_text(prompt=prompt, chat_history=chat_history)
-        logger.info("[Graph] No context answer: " + answer)
+        
+        # Combine prompts
+        full_prompt = "\n\n".join([document_prompt, footer_prompt])
+        answer = gen.generate_text(prompt=full_prompt, chat_history=chat_history)
+        
+        logger.info(f"[Graph] Generated answer using {footer_key}")
         return {**state, "answer": answer}
 
     # ── Node: Rewrite query ───────────────────────────────────
@@ -188,8 +205,8 @@ def build_rag_graph(
         try:
             hall = gen.generate_json(
                 prompt=HALLUCINATION_PROMPT.format(
-                    documents=context[:4000],
-                    answer=answer[:2000],
+                    documents=context,
+                    answer=answer,
                 )
             )
             if hall.get("score") == "no":
@@ -206,9 +223,10 @@ def build_rag_graph(
             ans = gen.generate_json(
                 prompt=ANSWER_GRADE_PROMPT.format(
                     question=state["question"],
-                    answer=answer[:2000],
+                    answer=answer,
                 )
             )
+            
             if ans.get("score") == "yes":
                 logger.info("[Graph] Answer accepted")
                 return END

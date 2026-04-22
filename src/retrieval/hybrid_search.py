@@ -1,25 +1,5 @@
-# src/retrieval/hybrid_search.py
 """
 Hybrid search: dense (semantic) + sparse (BM25) combined.
-
-Why hybrid?
-- Dense alone fails on exact legal terms: "المادة 47", "Article 47(b)"
-- BM25 alone misses semantic equivalents: "termination" vs "dismissal"
-- Hybrid catches both — consistently outperforms either alone
-
-Implementation
---------------
-- Dense  : uses the existing vectordb_client (Qdrant / PGVector)
-- Sparse : in-memory BM25 via `rank_bm25` (no extra infra needed)
-- Results : returned as separate lists → fed into RRF (rrf.py)
-
-Edge cases handled
-------------------
-- Empty query
-- Query longer than model max tokens (auto-truncated)
-- BM25 index not built yet (auto-builds on first call)
-- Zero results from either branch (returns empty list gracefully)
-- Arabic tokenization (whitespace split works well for BM25 in Arabic)
 """
 
 from __future__ import annotations
@@ -33,9 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger("uvicorn.error")
 
 
-# ─────────────────────────────────────────────
 # Result container
-# ─────────────────────────────────────────────
 @dataclass
 class SearchResult:
     text:       str
@@ -45,9 +23,7 @@ class SearchResult:
     source:     str = "unknown"    # "semantic" | "bm25" | "fused" | "reranked"
 
 
-# ─────────────────────────────────────────────
 # BM25 index
-# ─────────────────────────────────────────────
 class BM25Index:
     """
     Thin wrapper around rank_bm25.BM25Okapi.
@@ -124,9 +100,7 @@ class BM25Index:
         return results[:top_k]
 
 
-# ─────────────────────────────────────────────
 # Hybrid Search Engine
-# ─────────────────────────────────────────────
 class HybridSearchEngine:
     """
     Combines dense (vector) + sparse (BM25) retrieval.
@@ -235,11 +209,16 @@ class HybridSearchEngine:
 
             results = []
             for rank, doc in enumerate(raw or []):
+                # Get metadata and add chunk_id if available
+                metadata = getattr(doc, "metadata", {})
+                if hasattr(doc, 'chunk_id') and doc.chunk_id:
+                    metadata['chunk_id'] = doc.chunk_id
+                
                 results.append(SearchResult(
                     text     = doc.text,
                     score    = float(getattr(doc, "score", 0.0)),
                     rank     = rank,
-                    metadata = getattr(doc, "metadata", {}),
+                    metadata = metadata,
                     source   = "semantic",
                 ))
             return results
@@ -337,7 +316,13 @@ class HybridSearchEngine:
                 return
             
             texts = [doc.text for doc in all_docs]
-            metadatas = [getattr(doc, "metadata", {}) for doc in all_docs]
+            metadatas = []
+            for doc in all_docs:
+                metadata = getattr(doc, "metadata", {}).copy()
+                # Add chunk_id to metadata if available
+                if hasattr(doc, 'chunk_id') and doc.chunk_id:
+                    metadata['chunk_id'] = doc.chunk_id
+                metadatas.append(metadata)
             
             self.build_bm25_index(texts, metadatas)
             logger.info(f"[HybridSearch] Auto-built BM25 index with {len(texts)} documents")

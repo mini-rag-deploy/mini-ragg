@@ -6,14 +6,13 @@ Why cross-encoder?
 ------------------
 Bi-encoder (vector search) encodes query and document independently.
 Cross-encoder reads [query + document] together — like a human reading
-both side-by-side. It is 10-100× slower but dramatically more accurate.
+both side-by-side.
 
 Pipeline position: after RRF fusion, before final top-k selection.
 Typical flow: retrieve top-20 → re-rank → keep top-5.
 
 Models (ranked by Arabic+English quality):
-- BAAI/bge-reranker-v2-m3        ← best multilingual, recommended
-- cross-encoder/ms-marco-MiniLM-L-6-v2  ← fast, English-only fallback
+- BAAI/bge-reranker-v2-m3        ← best multilingual
 - Cohere Rerank API               ← API-based fallback (no local GPU needed)
 
 Edge cases handled
@@ -29,7 +28,10 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from typing import List, Optional
+from threading import Lock
+from collections import deque
 
 from .hybrid_search import SearchResult
 
@@ -44,9 +46,40 @@ def _truncate(text: str, max_chars: int = _MAX_INPUT_CHARS) -> str:
     return text[:max_chars] if len(text) > max_chars else text
 
 
-# ─────────────────────────────────────────────
+# Rate Limiter (shared utility)
+class RateLimiter:
+    """Simple rate limiter using sliding window"""
+    def __init__(self, max_requests: int, time_window: float):
+        self.max_requests = max_requests
+        self.time_window = time_window  # in seconds
+        self.requests = deque()
+        self.lock = Lock()
+    
+    def wait_if_needed(self):
+        """Wait if rate limit would be exceeded"""
+        with self.lock:
+            now = time.time()
+            
+            # Remove old requests outside the time window
+            while self.requests and self.requests[0] < now - self.time_window:
+                self.requests.popleft()
+            
+            # If at limit, wait until oldest request expires
+            if len(self.requests) >= self.max_requests:
+                sleep_time = self.requests[0] + self.time_window - now + 0.1  # +0.1 for safety
+                if sleep_time > 0:
+                    logger.info(f"[RateLimiter] Waiting {sleep_time:.1f}s to respect rate limit...")
+                    time.sleep(sleep_time)
+                    # Clean up again after waiting
+                    now = time.time()
+                    while self.requests and self.requests[0] < now - self.time_window:
+                        self.requests.popleft()
+            
+            # Record this request
+            self.requests.append(now)
+
+
 # Local cross-encoder (HuggingFace)
-# ─────────────────────────────────────────────
 class LocalReranker:
     """
     Uses sentence-transformers CrossEncoder locally.
@@ -145,9 +178,7 @@ class LocalReranker:
             return candidates[:top_k]
 
 
-# ─────────────────────────────────────────────
 # Cohere Rerank API (no local GPU needed)
-# ─────────────────────────────────────────────
 class CohereReranker:
     """
     Uses Cohere's /rerank endpoint.
@@ -158,12 +189,61 @@ class CohereReranker:
     def __init__(
         self,
         api_key:    str,
+        backup_api_key: str = None,  # NEW: Backup API key
+        backup_api_key2: str = None,
+        backup_api_key3: str = None,
         model:      str = "rerank-multilingual-v3.0",
         batch_size: int = 20,
     ):
         self.api_key    = api_key
+        self.backup_api_key = backup_api_key
+        self.backup_api_key2 = backup_api_key2
+        self.backup_api_key3 = backup_api_key3
+        self.current_api_key = api_key  # Track which key is active
+        
+        self.using_backup = False
+        self.using_backup2 = False
+        self.using_backup3 = False
+        
         self.model      = model
         self.batch_size = batch_size
+        
+        # Rate limiter for Cohere Rerank API: 10 requests/minute
+        self.rate_limiter = RateLimiter(max_requests=10, time_window=60.0)
+        logger.info("[CohereReranker] Rate limiter initialized: Rerank(10/min)")
+    
+    def _switch_to_backup(self):
+        """Switch to backup API key when primary fails"""
+        if self.backup_api_key and not self.using_backup:
+            logger.warning("⚠️  [CohereReranker] PRIMARY API KEY EXHAUSTED - Switching to BACKUP API key...")
+            self.current_api_key = self.backup_api_key
+            self.using_backup = True
+            logger.info("✅ [CohereReranker] Successfully switched to BACKUP API key")
+            return True
+        
+        if self.backup_api_key2 and not self.using_backup2:
+            logger.warning("⚠️  [CohereReranker] BACKUP API KEY EXHAUSTED - Switching to BACKUP2 API key...")
+            self.current_api_key = self.backup_api_key2
+            self.using_backup2 = True
+            logger.info("✅ [CohereReranker] Successfully switched to BACKUP2 API key")
+            return True
+        
+        if self.backup_api_key3 and not self.using_backup3:
+            logger.warning("⚠️  [CohereReranker] BACKUP2 API KEY EXHAUSTED - Switching to BACKUP3 API key...")
+            self.current_api_key = self.backup_api_key3
+            self.using_backup3 = True
+            logger.info("✅ [CohereReranker] Successfully switched to BACKUP3 API key")
+            return True
+
+        return False
+    
+    def _is_rate_limit_error(self, error_msg: str) -> bool:
+        """Check if error is a rate limit / quota exhausted error"""
+        rate_limit_indicators = [
+            "429", "TooManyRequests", "rate limit", "quota", 
+            "limit exceeded", "too many requests"
+        ]
+        return any(indicator.lower() in error_msg.lower() for indicator in rate_limit_indicators)
 
     def _simplify_query(self, query: str) -> str:
         """
@@ -217,7 +297,8 @@ class CohereReranker:
 
         try:
             import cohere
-            client = cohere.Client(self.api_key)
+            import time
+            client = cohere.Client(self.current_api_key)  # Use current_api_key instead of api_key
 
             # Simplify query to focus on core question
             simplified_query = self._simplify_query(query)
@@ -225,12 +306,42 @@ class CohereReranker:
             # Cohere has a max of 1000 docs per call — chunk if needed
             texts = [_truncate(doc.text) for doc in candidates]
 
-            response = client.rerank(
-                query     = _truncate(simplified_query, 512),
-                documents = texts,
-                model     = self.model,
-                top_n     = min(top_k, len(candidates)),
-            )
+            # Retry logic for rate limits with backup key failover
+            response = None
+            for attempt in range(3):
+                try:
+                    # Wait if needed to respect rate limit
+                    self.rate_limiter.wait_if_needed()
+                    
+                    response = client.rerank(
+                        query     = _truncate(simplified_query, 512),
+                        documents = texts,
+                        model     = self.model,
+                        top_n     = min(top_k, len(candidates)),
+                    )
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    error_msg = str(e)
+                    if self._is_rate_limit_error(error_msg):
+                        # Try to switch to backup key
+                        if self._switch_to_backup():
+                            logger.info("[CohereReranker] Retrying with backup API key...")
+                            client = cohere.Client(self.current_api_key)  # Create new client with backup key
+                            continue  # Retry immediately with backup key
+                        else:
+                            # No backup available, wait and retry
+                            if attempt < 2:  # Don't sleep on last attempt
+                                logger.warning(f"[CohereReranker] Rate limit hit (429). Retrying in 20 seconds... (Attempt {attempt+1}/3)")
+                                time.sleep(20)
+                            else:
+                                logger.error(f"[CohereReranker] Rate limit exhausted after 3 attempts")
+                                raise
+                    else:
+                        raise  # Re-raise non-rate-limit errors immediately
+            
+            if not response:
+                logger.error("[CohereReranker] No response after retries")
+                return candidates[:top_k]
 
             results: List[SearchResult] = []
             for rank, hit in enumerate(response.results):
@@ -257,9 +368,7 @@ class CohereReranker:
             return candidates[:top_k]
 
 
-# ─────────────────────────────────────────────
 # Unified Reranker — auto-selects backend
-# ─────────────────────────────────────────────
 class Reranker:
     """
     Auto-selects the best available re-ranker:
@@ -281,10 +390,18 @@ class Reranker:
         device:         str = "cpu",
         batch_size:     int = 16,
         cohere_api_key: Optional[str] = None,
+        cohere_backup_key: Optional[str] = None,  # NEW: Backup keys
+        cohere_backup_key2: Optional[str] = None,
+        cohere_backup_key3: Optional[str] = None,
         prefer_cohere:  bool = False,
     ):
         self._local   = LocalReranker(model_name, device, batch_size)
-        self._cohere  = CohereReranker(cohere_api_key) if cohere_api_key else None
+        self._cohere  = CohereReranker(
+            api_key=cohere_api_key,
+            backup_api_key=cohere_backup_key,
+            backup_api_key2=cohere_backup_key2,
+            backup_api_key3=cohere_backup_key3,
+        ) if cohere_api_key else None
         self._prefer_cohere = prefer_cohere
 
     def rerank(

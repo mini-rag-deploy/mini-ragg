@@ -19,7 +19,7 @@ OPENAI_API_KEY="key___"
 OPENAI_API_URL= ""
 COHERE_API_KEY="key___"
 
-GENERATION_MODEL_ID_LITERAL = ["gpt-4o-mini", "gemma2:9b-instruct-q5_0"]
+GENERATION_MODEL_ID_LITERAL = ["gpt-4o-mini"]
 GENERATION_MODEL_ID="gpt-4o-mini"
 EMBEDDING_MODEL_ID="embed-multilingual-v3.0"
 EMBEDDING_MODEL_SIZE=1024

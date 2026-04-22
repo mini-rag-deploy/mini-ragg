@@ -1,4 +1,3 @@
-# src/retrieval/hyde.py
 """
 HyDE — Hypothetical Document Embedding.
 
@@ -44,9 +43,7 @@ Document passage:
 """
 
 
-# ─────────────────────────────────────────────
 # HyDE Engine
-# ─────────────────────────────────────────────
 class HyDEEngine:
     """
     Generates a hypothetical document for a query and returns

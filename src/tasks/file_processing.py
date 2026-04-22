@@ -108,6 +108,23 @@ async def _process_project_files(task_instance, project_id: int,
             embedding_client=embedding_client,
             template_parser=template_parser,
         )
+        
+        # Use factory to get controller with advanced retrieval features
+        from factories.nlp_factory import build_nlp_controller
+        nlp_controller = build_nlp_controller(
+            vectordb_client=vectordb_client,
+            generation_client=generation_client,
+            embedding_client=embedding_client,
+            template_parser=template_parser,
+            collection_name=f"collection_{embedding_client.embedding_size}_{project_id}",
+            cohere_api_key=getattr(get_settings(), 'COHERE_API_KEY', None),
+            cohere_backup_key=getattr(get_settings(), 'COHERE_API_KEY_BACKUP', None),
+            cohere_backup_key2=getattr(get_settings(), 'COHERE_API_KEY_BACKUP2', None),
+            cohere_backup_key3=getattr(get_settings(), 'COHERE_API_KEY_BACKUP3', None),
+            enable_hybrid_search=True,
+            enable_reranking=True,
+            enable_multi_query=True,
+        )
 
         asset_model = await AssetModel.create_instence(
                 db_client=db_client

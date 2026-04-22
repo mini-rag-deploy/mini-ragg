@@ -49,9 +49,7 @@ class NLPController(BaseController):
         self.multi_query_expander = multi_query_expander
         self.rrf_fusion           = rrf_fusion
 
-    # ─────────────────────────────────────────────
     # Helpers
-    # ─────────────────────────────────────────────
     def create_collection_name(self, project_id: str) -> str:
         return f"collection_{self.vectordb_client.default_vector_size}_{project_id}".strip()
 
@@ -65,9 +63,7 @@ class NLPController(BaseController):
             collection_name=self.create_collection_name(project.project_id)
         )
 
-    # ─────────────────────────────────────────────
     # BM25 Index Management
-    # ─────────────────────────────────────────────
     async def rebuild_bm25_index(self, project: Project) -> bool:
         """
         Rebuild BM25 index from all documents in the vector database.
@@ -115,9 +111,7 @@ class NLPController(BaseController):
             logger.error(f"[NLPController] Failed to rebuild BM25 index: {exc}")
             return False
 
-    # ─────────────────────────────────────────────
     # Indexing
-    # ─────────────────────────────────────────────
     async def index_into_vector_db(
         self,
         project:     Project,
@@ -156,9 +150,7 @@ class NLPController(BaseController):
 
         return True
 
-    # ─────────────────────────────────────────────
-    # Basic search (unchanged — used by graph internally)
-    # ─────────────────────────────────────────────
+    # Basic search
     async def search_vector_db_collection(
         self,
         project: Project,
@@ -187,9 +179,7 @@ class NLPController(BaseController):
 
         return results or []
 
-    # ─────────────────────────────────────────────
     # Advanced retrieval pipeline
-    # ─────────────────────────────────────────────
     async def advanced_retrieve(
         self,
         project:  Project,
@@ -225,14 +215,14 @@ class NLPController(BaseController):
                 try:
                     dense, sparse = await self.hybrid_search_engine.search(
                         query=q,
-                        top_k=top_k * 3,    # retrieve more; re-ranking will cut down
+                        top_k=top_k * 6,    # Increased from 3x to 6x for better recall
                     )
                     all_dense_lists.append(dense)
                     all_sparse_lists.append(sparse)
                 except Exception as exc:
                     logger.warning(f"[NLPController] Hybrid search failed for '{q}': {exc}")
                     # Fallback to basic dense search
-                    basic = await self.search_vector_db_collection(project, q, top_k * 3)
+                    basic = await self.search_vector_db_collection(project, q, top_k * 6)
                     converted = [
                         SearchResult(
                             text=doc.text,
@@ -246,7 +236,7 @@ class NLPController(BaseController):
             else:
                 # No hybrid engine — basic dense search
                 logger.info("[NLPController] No hybrid engine configured, using basic search")
-                basic = await self.search_vector_db_collection(project, q, top_k * 3)
+                basic = await self.search_vector_db_collection(project, q, top_k * 6)
                 converted = [
                     SearchResult(
                         text=doc.text,
@@ -265,7 +255,7 @@ class NLPController(BaseController):
         fuser = self.rrf_fusion if self.rrf_fusion else RRFFusion(k=60)
 
         all_lists = all_dense_lists + all_sparse_lists
-        fused = fuser.fuse(*all_lists, top_k=top_k * 2)
+        fused = fuser.fuse(*all_lists, top_k=top_k * 4)  # Increased from 2x to 4x
 
         if not fused:
             logger.warning("[NLPController] RRF returned no results")
@@ -275,7 +265,7 @@ class NLPController(BaseController):
         if self.reranker and fused:
             # Increase candidates for reranking to improve recall
             # Rerank more candidates than requested to ensure good results surface
-            rerank_candidates = min(len(fused), top_k * 3)  # 3x for better coverage
+            rerank_candidates = min(len(fused), top_k * 5)  # Increased from 3x to 5x
             logger.info(f"[NLPController] Re-ranking top {rerank_candidates} fused results")
             try:
                 reranked = self.reranker.rerank(query, fused[:rerank_candidates], top_k=top_k)
@@ -287,9 +277,7 @@ class NLPController(BaseController):
         # No re-ranker: return fused results
         return fused[:top_k]
 
-    # ─────────────────────────────────────────────
     # Main Q&A entry point (backward compatible)
-    # ─────────────────────────────────────────────
     async def answer_rag_question(
         self,
         project:                Project,
@@ -297,29 +285,31 @@ class NLPController(BaseController):
         limit:                  int  = 10,
         use_self_correction:    bool = True,
         use_advanced_retrieval: bool = True,
+        question_type:          str  = None,  # NEW: question type for prompt selection
     ) -> Tuple[Optional[str], Any, list]:
         """
         Parameters
         ----------
         use_self_correction    : run the LangGraph self-correcting loop
         use_advanced_retrieval : use hybrid + RRF + reranker pipeline
+        question_type          : type of question (factual, analytical, comparative, summarization, hallucination)
 
         Returns
         -------
         (answer, metadata_or_full_prompt, chat_history)
         """
-        # use_self_correction = False
-        # use_advanced_retrieval = False
-
+        
         if use_self_correction:
             logger.info("[NLPController] Using self-correcting RAG graph for question answering")
             return await self._answer_with_graph(
                 project=project,
                 query=query,
                 use_advanced_retrieval=use_advanced_retrieval,
+                question_type=question_type,  # Pass question type
             )
         else:
-            return await self._answer_basic(project, query, limit)
+            print("answer with basic")
+            return await self._answer_basic(project, query, limit, use_advanced_retrieval, question_type)
 
     # ── Self-correcting path ───────────────────
     async def _answer_with_graph(
@@ -327,6 +317,7 @@ class NLPController(BaseController):
         project:                Project,
         query:                  str,
         use_advanced_retrieval: bool = True,
+        question_type:          str = None,  # NEW: question type for prompt selection
     ):
         from graph.rag_graph import build_rag_graph
 
@@ -334,24 +325,46 @@ class NLPController(BaseController):
             nlp_controller=self,
             project=project,
             use_advanced_retrieval=use_advanced_retrieval,
+            question_type=question_type,  # Pass question type to graph
         )
 
         initial_state = {
-            "question":    query,
-            "documents":   [],
-            "answer":      None,
-            "iterations":  0,
-            "grade_reason": None,
+            "question":      query,
+            "documents":     [],
+            "answer":        None,
+            "iterations":    0,
+            "grade_reason":  None,
+            "question_type": question_type,  # Add to state
         }
 
         result = await graph.ainvoke(initial_state)
 
         answer   = result.get("answer")
+        documents = result.get("documents", [])  # Get the documents used
+        
+        # Convert SearchResult objects to dictionaries for JSON serialization
+        serializable_documents = []
+        for doc in documents:
+            if hasattr(doc, '__dict__'):
+                # Convert SearchResult to dict
+                doc_dict = {
+                    "text": doc.text,
+                    "score": doc.score,
+                    "rank": doc.rank,
+                    "metadata": doc.metadata,
+                    "source": getattr(doc, 'source', 'unknown')
+                }
+                serializable_documents.append(doc_dict)
+            else:
+                # Already a dict or simple object
+                serializable_documents.append(doc)
+        
         metadata = {
             "iterations":             result.get("iterations", 0),
-            "docs_used":              len(result.get("documents", [])),
+            "docs_used":              len(documents),
             "mode":                   "self_correcting",
             "advanced_retrieval":     use_advanced_retrieval,
+            "documents":              serializable_documents,  # Use serializable version
         }
         return answer, metadata, []
 
@@ -361,33 +374,86 @@ class NLPController(BaseController):
         project: Project,
         query:   str,
         limit:   int = 10,
+        use_advanced_retrieval: bool = False,
+        question_type: str = None,  # NEW: question type for prompt selection
     ):
         answer, chat_history = None, None
 
-        retrieved = await self.search_vector_db_collection(
-            project=project, text=query, limit=limit
-        )
+        # Use advanced retrieval if available and requested
+        if use_advanced_retrieval and self.hybrid_search_engine:
+            retrieved = await self.advanced_retrieve(
+                project=project, query=query, top_k=limit
+            )
+        else:
+            retrieved = await self.search_vector_db_collection(
+                project=project, text=query, limit=limit
+            )
+
+        # Convert SearchResult objects to dictionaries for JSON serialization
+        serializable_retrieved = []
+        for doc in retrieved:
+            if hasattr(doc, '__dict__'):
+                # Convert SearchResult to dict
+                doc_dict = {
+                    "text": doc.text,
+                    "score": doc.score,
+                    "rank": getattr(doc, 'rank', 0),
+                    "metadata": getattr(doc, 'metadata', {}),
+                    "source": getattr(doc, 'source', 'unknown')
+                }
+                serializable_retrieved.append(doc_dict)
+            else:
+                # Already a dict or simple object
+                serializable_retrieved.append(doc)
 
         metadata = {
             "iterations": 0,
             "docs_used": len(retrieved),
             "mode": "basic",
-            "advanced_retrieval": False,
-            "documents": retrieved,
+            "advanced_retrieval": use_advanced_retrieval,
+            "documents": serializable_retrieved,  # Use serializable version
         }
 
         if not retrieved:
             return answer, metadata, chat_history
 
+        # ── Hallucination Detection: Check relevance scores ──
+        # If all retrieved documents have low scores, return "I don't know"
+        if retrieved:
+            max_score = max(getattr(doc, 'score', 0.0) for doc in retrieved)
+            avg_score = sum(getattr(doc, 'score', 0.0) for doc in retrieved) / len(retrieved)
+            
+            # Threshold: if max score < 0.5 or avg score < 0.3, documents are not relevant
+            if max_score < 0.5 or avg_score < 0.3:
+                logger.warning(f"[NLPController] Low relevance scores detected (max={max_score:.3f}, avg={avg_score:.3f}). Returning 'I don't know' response.")
+                answer = "I don't have enough information in the provided documents to answer this question accurately. The available information does not seem to be directly relevant to your query."
+                # Update metadata with serializable documents
+                metadata["documents"] = serializable_retrieved
+                return answer, metadata, chat_history
+
         system_prompt = self.template_parser.get("rag", "system_prompt")
         document_prompt = "\n".join([
             self.template_parser.get("rag", "document_prompt", {
                 "doc_num":    i + 1,
-                "chunk_text": self.generation_client.process_text(doc.text),
+                "chunk_text": doc.text,
             })
             for i, doc in enumerate(retrieved)
         ])
-        footer_prompt = self.template_parser.get("rag", "footer_prompt", {"query": query})
+        
+        # Select footer based on question type
+        footer_key = "footer_default"
+        if question_type:
+            # Map question type to footer key
+            type_to_footer = {
+                "factual": "footer_factual",
+                "analytical": "footer_analytical",
+                "comparative": "footer_comparative",
+                "summarization": "footer_summarization",
+                "hallucination": "footer_hallucination",
+            }
+            footer_key = type_to_footer.get(question_type.lower(), "footer_default")
+        
+        footer_prompt = self.template_parser.get("rag", footer_key, {"query": query})
 
         chat_history = [
             self.generation_client.construct_prompt(

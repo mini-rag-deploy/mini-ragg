@@ -9,8 +9,6 @@ class LLMEnums(Enum):
     COHERE = "COHERE"
     HUGGINGFACE = "HUGGINGFACE"
     CUSTOM = "CUSTOM"
-    GEMINI = "GEMINI"
-    GEMMA = "GEMMA"
 
     # LLM Models
     GPT_3_5_TURBO = "gpt-3.5-turbo"

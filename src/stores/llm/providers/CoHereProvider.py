@@ -6,14 +6,58 @@ import json
 import re
 import time
 from typing import List, Union
+from threading import Lock
+from collections import deque
+
+class RateLimiter:
+    """Simple rate limiter using sliding window"""
+    def __init__(self, max_requests: int, time_window: float):
+        self.max_requests = max_requests
+        self.time_window = time_window  # in seconds
+        self.requests = deque()
+        self.lock = Lock()
+    
+    def wait_if_needed(self):
+        """Wait if rate limit would be exceeded"""
+        with self.lock:
+            now = time.time()
+            
+            # Remove old requests outside the time window
+            while self.requests and self.requests[0] < now - self.time_window:
+                self.requests.popleft()
+            
+            # If at limit, wait until oldest request expires
+            if len(self.requests) >= self.max_requests:
+                sleep_time = self.requests[0] + self.time_window - now + 0.1  # +0.1 for safety
+                if sleep_time > 0:
+                    logging.getLogger(__name__).info(f"[RateLimiter] Waiting {sleep_time:.1f}s to respect rate limit...")
+                    time.sleep(sleep_time)
+                    # Clean up again after waiting
+                    now = time.time()
+                    while self.requests and self.requests[0] < now - self.time_window:
+                        self.requests.popleft()
+            
+            # Record this request
+            self.requests.append(now)
 
 class CoHereProvider(LLMInterface):
     def __init__(self, api_key: str,
+                    backup_api_key: str = None,  # NEW: Backup API key
+                    backup_api_key2: str = None,
+                    backup_api_key3: str = None,
                     default_input_max_characters: int = 1000,
                     default_output_max_tokens: int = 2048 ,
-                    default_temperature: float = 0.7
+                    default_temperature: float = 0.1
                      ):
         self.api_key = api_key
+        self.backup_api_key = backup_api_key
+        self.backup_api_key2 = backup_api_key2
+        self.backup_api_key3 = backup_api_key3
+        self.current_api_key = api_key  # Track which key is active
+
+        self.using_backup = False
+        self.using_backup2 = False
+        self.using_backup3 = False
 
         self.default_input_max_characters = default_input_max_characters
         self.default_output_max_tokens = default_output_max_tokens
@@ -26,6 +70,49 @@ class CoHereProvider(LLMInterface):
         self.client = cohere.Client(api_key=self.api_key)
         self.enums = CoHereEnums
         self.logger = logging.getLogger(__name__)
+        
+        # Rate limiters for Cohere Trial API limits
+        # Chat API: 20 requests/minute = 60 seconds / 20 = 3 seconds between requests
+        self.chat_rate_limiter = RateLimiter(max_requests=20, time_window=60.0)
+        # Embed API: 2000 inputs/minute (very generous, unlikely to hit)
+        self.embed_rate_limiter = RateLimiter(max_requests=2000, time_window=60.0)
+        self.logger.info("[CoHereProvider] Rate limiters initialized: Chat(20/min), Embed(2000/min)")
+    
+    def _switch_to_backup(self):
+        """Switch to backup API key when primary fails"""
+        if self.backup_api_key and not self.using_backup:
+            self.logger.warning("⚠️  PRIMARY API KEY EXHAUSTED - Switching to BACKUP API key...")
+            self.current_api_key = self.backup_api_key
+            self.client = cohere.Client(api_key=self.backup_api_key)
+            self.using_backup = True
+            self.logger.info("✅ Successfully switched to BACKUP API key")
+            return True
+        
+        if self.backup_api_key2 and not self.using_backup2:
+            self.logger.warning("⚠️  PRIMARY API KEY EXHAUSTED - Switching to BACKUP API key2...")
+            self.current_api_key = self.backup_api_key2
+            self.client = cohere.Client(api_key=self.backup_api_key2)
+            self.using_backup2 = True
+            self.logger.info("✅ Successfully switched to BACKUP API key2")
+            return True
+        
+        if self.backup_api_key3 and not self.using_backup3:
+            self.logger.warning("⚠️  PRIMARY API KEY EXHAUSTED - Switching to BACKUP API key3...")
+            self.current_api_key = self.backup_api_key3
+            self.client = cohere.Client(api_key=self.backup_api_key3)
+            self.using_backup3 = True
+            self.logger.info("✅ Successfully switched to BACKUP API key3")
+            return True
+
+        return False
+    
+    def _is_rate_limit_error(self, error_msg: str) -> bool:
+        """Check if error is a rate limit / quota exhausted error"""
+        rate_limit_indicators = [
+            "429", "TooManyRequests", "rate limit", "quota", 
+            "limit exceeded", "too many requests"
+        ]
+        return any(indicator.lower() in error_msg.lower() for indicator in rate_limit_indicators)
 
 
     def set_generation_model(self, model_id: str):
@@ -65,6 +152,9 @@ class CoHereProvider(LLMInterface):
 
         for attempt in range(3):
             try:
+                # Wait if needed to respect rate limit
+                self.chat_rate_limiter.wait_if_needed()
+                
                 response = self.client.chat(
                     model=self.generation_model_id,
                     chat_history=chat_history,
@@ -78,9 +168,15 @@ class CoHereProvider(LLMInterface):
                 return response.text
             except Exception as e:
                 error_msg = str(e)
-                if "429" in error_msg or "TooManyRequests" in error_msg:
-                    self.logger.warning(f"Rate limit hit (429). Retrying in 20 seconds... (Attempt {attempt+1}/3)")
-                    time.sleep(20)
+                if self._is_rate_limit_error(error_msg):
+                    # Try to switch to backup key
+                    if self._switch_to_backup():
+                        self.logger.info("Retrying with backup API key...")
+                        continue  # Retry immediately with backup key
+                    else:
+                        # No backup available, wait and retry
+                        self.logger.warning(f"Rate limit hit (429). Retrying in 20 seconds... (Attempt {attempt+1}/3)")
+                        time.sleep(20)
                 else:
                     self.logger.error(f"generate_text failed: {e}")
                     return None
@@ -100,6 +196,9 @@ class CoHereProvider(LLMInterface):
 
         for attempt in range(3):
             try:
+                # Wait if needed to respect rate limit
+                self.chat_rate_limiter.wait_if_needed()
+                
                 response = self.client.chat(
                     model=self.generation_model_id,
                     chat_history=chat_history,
@@ -137,9 +236,15 @@ class CoHereProvider(LLMInterface):
 
             except Exception as e:
                 error_msg = str(e)
-                if "429" in error_msg or "TooManyRequests" in error_msg:
-                    self.logger.warning(f"Rate limit hit (429). Retrying in 20 seconds... (Attempt {attempt+1}/3)")
-                    time.sleep(20)
+                if self._is_rate_limit_error(error_msg):
+                    # Try to switch to backup key
+                    if self._switch_to_backup():
+                        self.logger.info("Retrying with backup API key...")
+                        continue  # Retry immediately with backup key
+                    else:
+                        # No backup available, wait and retry
+                        self.logger.warning(f"Rate limit hit (429). Retrying in 20 seconds... (Attempt {attempt+1}/3)")
+                        time.sleep(20)
                 else:
                     self.logger.error(f"generate_json failed: {e}")
                     return {}
@@ -163,17 +268,39 @@ class CoHereProvider(LLMInterface):
         if document_type== DocumentTypeEnums.QUERY:
             input_type = CoHereEnums.QUERY
         
-        response = self.client.embed(
-            texts=[self.process_text(t) for t in text],
-            model=self.embedding_model_id,
-            input_type=input_type,
-            embedding_types=['float']
-        )
+        for attempt in range(3):
+            try:
+                # Wait if needed to respect rate limit
+                self.embed_rate_limiter.wait_if_needed()
+                
+                response = self.client.embed(
+                    texts=[self.process_text(t) for t in text],
+                    model=self.embedding_model_id,
+                    input_type=input_type,
+                    embedding_types=['float']
+                )
 
-        if not response or not response.embeddings or not response.embeddings.float:
-            self.logger.error("No embedding data received from Cohere.")
-            return None
-        return [f for f in response.embeddings.float]
+                if not response or not response.embeddings or not response.embeddings.float:
+                    self.logger.error("No embedding data received from Cohere.")
+                    return None
+                return [f for f in response.embeddings.float]
+            
+            except Exception as e:
+                error_msg = str(e)
+                if self._is_rate_limit_error(error_msg):
+                    # Try to switch to backup key
+                    if self._switch_to_backup():
+                        self.logger.info("Retrying with backup API key...")
+                        continue  # Retry immediately with backup key
+                    else:
+                        # No backup available, wait and retry
+                        self.logger.warning(f"Rate limit hit (429). Retrying in 20 seconds... (Attempt {attempt+1}/3)")
+                        time.sleep(20)
+                else:
+                    self.logger.error(f"embed_text failed: {e}")
+                    return None
+        
+        return None
 
     def construct_prompt(self, prompt: str , role: str):
         return{
