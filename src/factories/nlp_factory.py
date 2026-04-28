@@ -38,6 +38,8 @@ def build_nlp_controller(
     enable_hybrid_search: bool = True,
     enable_reranking:     bool = True,
     enable_multi_query:   bool = True,
+    enable_agentic_rag:   bool = False,  # NEW: Enable agentic source selection
+    tavily_api_key:       Optional[str] = None,  # NEW: Tavily API key for internet search
 ):
     from controllers.NLPController import NLPController
     from retrieval.hybrid_search import HybridSearchEngine
@@ -113,6 +115,32 @@ def build_nlp_controller(
         except Exception as exc:
             logger.warning(f"[Factory] MultiQueryExpander failed to init: {exc}")
 
+    # ── Source Router (Agentic RAG) ────────────────────────────
+    source_router = None
+    if enable_agentic_rag:
+        try:
+            from agent.source_router import SourceRouter
+            from agent.tools_registry import ToolsRegistry
+            from agent.internet_retriever import InternetRetriever
+            
+            # Initialize tools registry
+            tools_registry = ToolsRegistry()
+            
+            # Initialize internet retriever
+            internet_retriever = InternetRetriever(
+                tavily_api_key=tavily_api_key or os.getenv("TAVILY_API_KEY"),
+            )
+            
+            # Initialize source router
+            source_router = SourceRouter(
+                generation_client=generation_client,
+                tools_registry=tools_registry,
+                internet_retriever=internet_retriever,
+            )
+            logger.info("[Factory] SourceRouter initialized (Agentic RAG enabled)")
+        except Exception as exc:
+            logger.warning(f"[Factory] SourceRouter failed to init: {exc}")
+
     # ── Assemble controller ────────────────────────────────────
     controller = NLPController(
         vectordb_client      = vectordb_client,
@@ -123,6 +151,7 @@ def build_nlp_controller(
         reranker             = reranker,
         multi_query_expander = expander,
         rrf_fusion           = rrf,
+        source_router        = source_router,  # NEW: Add source router
     )
 
     logger.info("[Factory] NLPController ready")

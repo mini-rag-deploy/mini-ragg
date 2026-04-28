@@ -62,6 +62,8 @@ async def startup_span():
         enable_hybrid_search=True,
         enable_reranking=True,
         enable_multi_query=True,
+        enable_agentic_rag=True,  # Enable agentic source selection
+        tavily_api_key=settings.TAVILY_API_KEY if hasattr(settings, 'TAVILY_API_KEY') else None,
     )
 
 async def shutdown_span():
