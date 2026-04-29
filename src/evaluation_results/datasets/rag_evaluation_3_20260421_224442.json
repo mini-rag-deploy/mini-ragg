@@ -1,0 +1,2077 @@
+{
+  "name": "rag_evaluation_3",
+  "description": "Evaluation dataset for project 3",
+  "version": "1.0.0",
+  "created_at": "2026-04-21T22:44:42.216513",
+  "questions": [
+    {
+      "id": "920f744c-2d9b-460c-936e-f125c4e2ed2f",
+      "question": "What are the advantages of On-Device AI (Edge AI) according to the text?",
+      "reference_answer": "Low latency, enhanced privacy, reduced bandwidth usage.",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6964"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 679,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:40:54.543641"
+    },
+    {
+      "id": "45698dd0-b9cb-4c76-a3c9-f34e8512058b",
+      "question": "What should be done on gateways to ensure real-time performance?",
+      "reference_answer": "On gateways, reserve cores for real-time partitions and pin interrupts accordingly; disable DVFS or use a performance governor during control windows; and tune kernel and socket buffers to avoid head-of-line blocking under bursty traffic.",
+      "question_type": "factual",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6802"
+      ],
+      "source_documents": [
+        "wibph113lgls_ch3.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 623,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:40:56.232728"
+    },
+    {
+      "id": "53490908-54db-4d42-a16c-8ef1de3feb96",
+      "question": "What does protocol normalization at the edge reduce according to the text?",
+      "reference_answer": "Integration time and vendor lock-in",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6737"
+      ],
+      "source_documents": [
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 652,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:40:57.073000"
+    },
+    {
+      "id": "53179738-02ec-4582-8ecb-35480c97b59d",
+      "question": "What are two key practices recommended for ensuring smart-home longevity according to the text?",
+      "reference_answer": "Prioritize products supporting open standards and local control paths, and segment home networks to isolate IoT subnets from guest or entertainment devices.",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6925"
+      ],
+      "source_documents": [
+        "sjjm9nom1za9_ch5.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 630,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:40:59.930115"
+    },
+    {
+      "id": "e30d8722-1156-450b-819e-c33d185c8ebf",
+      "question": "Who coined the term 'Internet of Things' and in what year?",
+      "reference_answer": "Ashton coined the term 'Internet of Things' in 1999.",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6625"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 675,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:01.366556"
+    },
+    {
+      "id": "75d3a3c4-a888-4380-bbed-6f8f468837a4",
+      "question": "What are the two main characteristics of client-server models mentioned in the text?",
+      "reference_answer": "simplicity and struggle with scalability",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6869"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 319,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:02.431863"
+    },
+    {
+      "id": "f2ece725-ecf8-4742-ab02-6a92d13988db",
+      "question": "Which organizations contribute to harmonizing the fragmented IoT ecosystem?",
+      "reference_answer": "The LoRa Alliance, Zigbee/CSA, OCF, IEEE, IETF, and ITU.",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "7018"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 565,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:05.713556"
+    },
+    {
+      "id": "f90ee853-b6d8-47d8-a0cf-d38e3643826e",
+      "question": "Which organizations are leading standardization efforts for IoT interoperability?",
+      "reference_answer": "IEEE, IETF, and ITU",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6638"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 619,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:06.528498"
+    },
+    {
+      "id": "2b34070e-c54d-45a0-a6b3-5902a815e78e",
+      "question": "What does TSN intersect with IoT to enable according to the text?",
+      "reference_answer": "Deterministic Ethernet for control",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "7025"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 660,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:08.255040"
+    },
+    {
+      "id": "47a924c4-8e2b-4bf4-8489-f8bf3460a69f",
+      "question": "What are the three key capabilities of 5G networks that are uniquely suited to IoT, as mentioned in the text?",
+      "reference_answer": "Ultra-Reliable Low-Latency Communications (URLLC), Massive Machine-Type Communications (mMTC), and Enhanced Mobile Broadband (eMBB).",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6999"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 598,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:11.007559"
+    },
+    {
+      "id": "c503a588-91fd-4e28-93ac-d59e4a0465e0",
+      "question": "What does a loop-centric view of IoT primarily clarify?",
+      "reference_answer": "Latency budgets and responsibilities across tiers",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6664"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 679,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:12.079647"
+    },
+    {
+      "id": "253d903f-1d21-497f-914e-6c97f561cdaa",
+      "question": "What are the three components typically integrated in hybrid IoT architectures?",
+      "reference_answer": "cloud, edge, and fog components",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6688"
+      ],
+      "source_documents": [
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 688,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:12.924724"
+    },
+    {
+      "id": "75e59816-c6f4-40a6-9180-74c85b45b9d6",
+      "question": "What type of device might a smart surveillance camera performing local image analysis require?",
+      "reference_answer": "a Jetson Nano",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6715"
+      ],
+      "source_documents": [
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 313,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:14.797109"
+    },
+    {
+      "id": "0bdaed94-de79-4272-84e6-479604156fac",
+      "question": "What is the typical range of LoRaWAN in rural areas?",
+      "reference_answer": "up to 15 km",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6846"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 598,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:15.777015"
+    },
+    {
+      "id": "b059dbac-3c7e-4f0b-a004-a8ec00a01cee",
+      "question": "What is the primary requirement for real-time processing in IoT systems according to the text?",
+      "reference_answer": "The ability to meet deadlines is not merely a performance metric but a requirement for safety and reliability.",
+      "question_type": "factual",
+      "difficulty": "easy",
+      "language": "en",
+      "source_chunks": [
+        "6809"
+      ],
+      "source_documents": [
+        "wibph113lgls_ch3.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 558,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:17.018422"
+    },
+    {
+      "id": "b3ab5106-0b3b-4fd0-bd19-87c41ae656d0",
+      "question": "What are the potential trade-offs of implementing a hybrid approach for smart camera systems, where model training occurs in the cloud and inference runs at the edge, and how might these trade-offs impact the overall effectiveness of the system?",
+      "reference_answer": "The hybrid approach for smart camera systems balances the advantages of cloud-based model training (e.g., access to greater computational resources and data) with edge-based inference (e.g., low latency, enhanced privacy, and reduced bandwidth usage). However, this approach introduces trade-offs. For instance, while edge inference addresses privacy concerns by avoiding cloud data transmission, it may struggle with limited processing capacity and energy constraints, potentially affecting accuracy or reliability. Additionally, the system’s effectiveness could be impacted by the need for seamless synchronization between cloud training and edge inference, as well as the complexity of managing distributed resources. These trade-offs must be carefully managed to ensure the system remains efficient and reliable in real-world applications.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6965"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 672,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:21.351566"
+    },
+    {
+      "id": "0ae5c8da-6f17-4471-a2ac-b754e0a04800",
+      "question": "What are the potential long-term implications for IoT ecosystems if standardization efforts fail to address protocol fragmentation and security vulnerabilities in lightweight implementations?",
+      "reference_answer": "If standardization efforts fail to address protocol fragmentation and security vulnerabilities, IoT ecosystems could face significant long-term challenges. Protocol fragmentation would continue to hinder interoperability, limiting the seamless integration of devices and systems. Additionally, unaddressed security vulnerabilities in lightweight implementations could expose entire ecosystems to widespread risks, such as data breaches or large-scale cyberattacks. This could erode trust in IoT technologies, stifle innovation, and impede the adoption of IoT solutions across industries. Moreover, without standardized protocols, the convergence of 5G, edge computing, and IoT would be less effective, potentially failing to meet the demands of massive device connectivity, ultra-low latency, and distributed intelligence.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6875"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 635,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:25.649486"
+    },
+    {
+      "id": "77b93366-7d82-400f-93b6-07e4810d76fc",
+      "question": "Considering the focus on standardization, 5G integration, and real-world applications in the provided text, what are the potential long-term implications for IoT adoption if open research challenges, such as those mentioned in Question 7, remain unresolved?",
+      "reference_answer": "If open research challenges in IoT, such as security, interoperability, and energy efficiency, remain unresolved, the long-term implications for IoT adoption could include slowed growth, increased fragmentation in the market, and reduced trust from consumers and industries. Without robust solutions to these challenges, the potential of 5G-enabled IoT applications in smart cities, healthcare, and manufacturing may not be fully realized, hindering the transformative impact of IoT technologies.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "7034"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 576,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:31.494521"
+    },
+    {
+      "id": "7cd9a130-e577-4bf3-9b43-bdbee0be6685",
+      "question": "How does the tiering of workloads across edge, gateway, and cloud tiers contribute to both resilience and auditability in the system?",
+      "reference_answer": "The tiering strategy ensures that critical functions like coarse sensor screening and safety interlocks remain on-device, reducing latency and maintaining immediate control. Gateways handle adaptive tasks such as threshold adjustments and caching during outages, which enhances resilience by ensuring continuity during backhaul disruptions. Meanwhile, cloud analytics manage resource-intensive tasks like pattern mining and forecasting, leveraging greater computational power. This distribution not only optimizes bandwidth usage but also maintains a centralized 'control of truth' in the cloud, facilitating auditability and enabling rollback mechanisms when model or data drift occurs.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6962"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 673,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:36.623571"
+    },
+    {
+      "id": "e7da7453-8337-43ff-a121-1c2df0f66f40",
+      "question": "How does the integration of actuators and sensors in closed-loop control systems, as exemplified by a smart thermostat, enhance the efficiency and precision of IoT applications in industrial and robotic systems?",
+      "reference_answer": "The integration of actuators and sensors in closed-loop control systems enhances efficiency and precision by enabling real-time monitoring and adjustment of system outputs based on sensor feedback. For instance, in a smart thermostat, the temperature sensor continuously detects ambient conditions, and the actuator adjusts heating or cooling output accordingly. This dynamic interaction ensures optimal performance, reduces energy waste, and maintains precise control, which is critical in industrial and robotic systems where accuracy and responsiveness are paramount.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6695"
+      ],
+      "source_documents": [
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 582,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:41:39.468383"
+    },
+    {
+      "id": "aa55e5bf-c498-48cc-b4b4-d1b934a01192",
+      "question": "How do lightweight operating systems like FreeRTOS and Contiki contribute to the effective management of constrained IoT devices, and what implications does this have for the broader IoT ecosystem?",
+      "reference_answer": "Lightweight operating systems such as FreeRTOS and Contiki are designed to manage constrained IoT devices effectively by optimizing resource usage and ensuring real-time performance. Their minimalistic design allows them to operate on devices with limited memory and processing power, which is crucial for the scalability and efficiency of IoT networks. This has broader implications for the IoT ecosystem, as it enables the deployment of a vast number of devices in resource-constrained environments, fostering innovation in applications like smart homes, industrial automation, and environmental monitoring.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6731"
+      ],
+      "source_documents": [
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 541,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:03.138393"
+    },
+    {
+      "id": "f9c1225f-7aee-4dbf-ab9c-72242129d8dd",
+      "question": "How do energy-efficient scheduling techniques like dynamic voltage scaling and energy-aware scheduling impact the overall system design and deployment considerations in IoT environments?",
+      "reference_answer": "Energy-efficient scheduling techniques such as dynamic voltage scaling and energy-aware scheduling have significant implications for IoT system design and deployment. By extending device lifetimes and reducing maintenance costs, these techniques enable the use of IoT devices in remote or large-scale deployments where frequent maintenance is impractical or costly. This, in turn, influences design decisions by prioritizing energy efficiency alongside deadline guarantees, potentially requiring trade-offs between performance and power consumption. Additionally, it encourages the adoption of distributed architectures that rely heavily on efficient inter-process communication (IPC) to maintain coordination and collaboration across energy-constrained devices.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6811"
+      ],
+      "source_documents": [
+        "wibph113lgls_ch3.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 691,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:05.960678"
+    },
+    {
+      "id": "4dab7a64-9452-48bb-af30-96dbe5af655b",
+      "question": "Considering the strengths of BeagleBone and Raspberry Pi, which platform would be more suitable for a small-scale smart home project, and why?",
+      "reference_answer": "For a small-scale smart home project, Raspberry Pi would likely be more suitable due to its larger ecosystem and stronger community support. While BeagleBone's superior I/O and real-time performance are advantageous for industrial automation, the extensive resources, tutorials, and pre-built solutions available for Raspberry Pi would significantly ease development and troubleshooting for a smart home application, which typically relies more on community-driven innovations than on high-end I/O capabilities.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6718"
+      ],
+      "source_documents": [
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 553,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:11.416401"
+    },
+    {
+      "id": "aa26345d-a0af-4a3c-80c9-5cb2f8917019",
+      "question": "Why is it important to induce worst-case interference scenarios during system software verification, and what are the potential consequences if this step is omitted?",
+      "reference_answer": "Inducing worst-case interference scenarios, such as simultaneous releases, back-to-back interrupts, cold caches, and maximum DMA rates, is crucial because it ensures that the system can maintain safety margins under extreme conditions. By verifying that measured response-time distributions remain within acceptable limits during these scenarios, the system is less likely to fail under realistic I/O conditions. Omitting this step could lead to brittle schedules that pass theoretical analysis but fail in practice, potentially causing safety violations or system instability when faced with real-world interference.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6772"
+      ],
+      "source_documents": [
+        "wibph113lgls_ch3.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 593,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:15.200417"
+    },
+    {
+      "id": "225b8ede-6f84-49ce-a848-16043ea78b35",
+      "question": "Why is jitter-sensitive control more likely to prefer deterministic or bounded-latency links over high-latency cellular or best-effort links?",
+      "reference_answer": "Jitter-sensitive control applications require consistent and predictable communication delays to ensure reliable operation. Deterministic or bounded-latency links provide guaranteed latency constraints, which are essential for real-time control systems. High-latency cellular links and best-effort links do not offer such guarantees, making them unsuitable for jitter-sensitive applications. Random backhaul further exacerbates unpredictability, making it the least preferable option.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6880"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 624,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:22.660743"
+    },
+    {
+      "id": "d69ba5ca-fbe3-49db-bb6e-d96290f15e31",
+      "question": "Given the vast diversity of IoT devices and the continuous data streams they generate, what potential challenges might arise in ensuring data interoperability and meaningful analysis across different types of devices and industries?",
+      "reference_answer": "The diversity of IoT devices, ranging from environmental sensors to autonomous vehicles, introduces challenges in data interoperability due to varying data formats, protocols, and standards. Ensuring meaningful analysis across industries requires standardized data frameworks and robust integration solutions to harmonize disparate data streams, which can be complex and resource-intensive.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6609"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 505,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:26.187193"
+    },
+    {
+      "id": "fda0f5f8-0891-477b-8c72-18112b295252",
+      "question": "How does the recognition of IoT as a non-monolithic concept influence the approach of students and professionals specializing in the field?",
+      "reference_answer": "Recognizing that IoT is not a monolithic concept but manifests differently across contexts (consumer devices, integrated ecosystems, and mission-critical industrial systems) emphasizes the need for a nuanced understanding. This awareness encourages students and professionals to tailor their knowledge and skills to specific IoT domains, ensuring they can effectively address the unique challenges and requirements of each context rather than applying a one-size-fits-all approach.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6658"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 635,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:30.983892"
+    },
+    {
+      "id": "4386fcf0-da52-4535-adfb-121682556813",
+      "question": "What are the potential implications of failing to effectively manage multirate systems in IoT, particularly on MCU-class devices?",
+      "reference_answer": "Failing to effectively manage multirate systems in IoT, especially on MCU-class devices, can lead to processor overloading, missed deadlines, and system instability. For instance, if the highest-rate loop (e.g., vibration sensor) is not properly isolated and consumes unvalidated data or blocks the control path, it could cause slower tasks (e.g., temperature sensor updates) to be delayed or skipped. This could result in inaccurate data processing, failure to detect critical anomalies, or even system crashes, compromising the reliability and functionality of the IoT application.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6748"
+      ],
+      "source_documents": [
+        "wibph113lgls_ch3.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 688,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:34.847459"
+    },
+    {
+      "id": "dd8ab615-dbdb-49f7-8327-8d6816fb6aa2",
+      "question": "What are the potential broader implications for the retail industry if RFID technology becomes widely adopted for inventory management, beyond the immediate benefits of efficiency and waste reduction?",
+      "reference_answer": "The widespread adoption of RFID technology in inventory management could lead to significant transformations in the retail industry. Beyond efficiency and waste reduction, it could enable more accurate demand forecasting, personalized customer experiences through real-time product tracking, and enhanced supply chain transparency. Additionally, it might drive the development of new business models, such as dynamic pricing based on real-time inventory levels, and foster greater collaboration between manufacturers and retailers in managing stock. However, it also raises concerns about data privacy, the cost of implementation, and the need for standardized systems across the industry.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6624"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 547,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:46.654076"
+    },
+    {
+      "id": "30d49d36-0003-4053-ab8e-6a35172d6fd8",
+      "question": "Considering the options provided for federated learning in production, why might 'Adaptive client selection and differential privacy' (Option B) be more beneficial than 'Arbitrary clients' (Option A)?",
+      "reference_answer": "Adaptive client selection ensures that only the most relevant or reliable clients participate in the learning process, optimizing resource usage and model accuracy. Differential privacy adds an extra layer of security by protecting individual client data, which is crucial for maintaining user trust and compliance with data protection regulations. In contrast, arbitrary client selection could lead to inefficiencies, reduced model quality, and potential privacy risks, making Option B a more robust and secure choice for federated learning in production.",
+      "question_type": "analytical",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "7024"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf"
+      ],
+      "metadata": {
+        "chunk_score": 1.0,
+        "chunk_length": 317,
+        "generation_method": "llm_single_chunk"
+      },
+      "created_at": "2026-04-21T22:42:56.069647"
+    },
+    {
+      "id": "eacd0fb4-8185-43d5-b8ca-e8286cdc7ca4",
+      "question": "How do the practical applications of IoT devices (as described in Text 1) relate to the technical considerations of IoT architecture and components (as outlined in Text 2)?",
+      "reference_answer": "Text 1 highlights practical applications of IoT devices, such as energy management through smart thermostats and enhanced security via smart locks and cameras. These applications rely on the technical foundations discussed in Text 2, including secure boot chains for verifying code signatures, power budgeting for efficient operation, and device identity management. For example, the energy-saving features of smart thermostats depend on reliable and secure IoT architecture, while security features like real-time monitoring require robust device identity and OTA safety mechanisms.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6923",
+        "6736"
+      ],
+      "source_documents": [
+        "sjjm9nom1za9_ch5.pdf",
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:42:59.580250"
+    },
+    {
+      "id": "e472e656-e479-4414-88a4-d2ebc4178e73",
+      "question": "How do the technical details of IoT communications (as discussed in Text 1) relate to the broader understanding of IoT as a technological and social construct (as described in Text 2)?",
+      "reference_answer": "Text 1 delves into the specific technical aspects of IoT communications, such as protocols (DTLS, CoAP), application gateways, latency considerations, telemetry batching, and security on LPWANs. These details are crucial for the functional implementation of IoT systems. Text 2, on the other hand, provides a broader perspective, emphasizing IoT as a multifaceted concept that varies across consumer devices, integrated ecosystems, and industrial systems. The technical details in Text 1 are foundational to enabling the diverse manifestations of IoT described in Text 2, highlighting the interplay between technical protocols and the broader societal and contextual applications of IoT.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6880",
+        "6658"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf",
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:43:04.288258"
+    },
+    {
+      "id": "87fb7e97-1b01-4907-8fa9-319300d3dd99",
+      "question": "How do the approaches to security in ultra-constrained microcontrollers (Text 1) and comprehensive threat modeling (Text 2) differ in their focus and implementation strategies?",
+      "reference_answer": "Text 1 focuses on the trade-off between security and device capabilities in ultra-constrained microcontrollers, advocating for lightweight encryption schemes as an alternative to computationally heavy TLS. In contrast, Text 2 emphasizes a holistic, layered approach to threat modeling, incorporating cyber, physical, and supply-chain risks, and promoting iterative, evidence-driven methods like STRIDE analyses. While Text 1 addresses specific technical limitations and solutions for resource-constrained devices, Text 2 provides a broader framework for identifying and mitigating diverse threats across multiple domains.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6840",
+        "6903"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf",
+        "sjjm9nom1za9_ch5.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:43:09.965192"
+    },
+    {
+      "id": "f78d0a8b-ca5a-48d3-b524-f6512d6376ec",
+      "question": "How do the communication protocols discussed in Source 2 relate to the emerging trends and future directions of IoT mentioned in Source 1, particularly in the context of edge AI and 5G transformation?",
+      "reference_answer": "Source 1 highlights emerging trends in IoT, such as edge AI and 5G, which emphasize on-device inference and enhanced communication capabilities. Source 2 focuses on the diversity of communication protocols, including LPWANs, which are crucial for IoT applications requiring long-range, low-power communication. The relationship lies in how these protocols (e.g., LPWANs) support the deployment of edge AI by enabling efficient data transmission for battery-powered devices, while 5G transformation complements this by providing high-speed, low-latency communication for more complex IoT applications. Together, these advancements address the need for interoperability and security practices mentioned in Source 1, ensuring seamless integration and scalability of IoT systems.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "7033",
+        "6845"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf",
+        "2jtkt84a1tgt_ch4.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:43:14.500895"
+    },
+    {
+      "id": "f9ff8d2c-12b1-4be7-8a77-e1621c949f34",
+      "question": "How does the client-server model described in Source 1 compare to the considerations for constrained devices and real-time processing in IoT applications discussed in Source 2 in terms of suitability and challenges?",
+      "reference_answer": "The client-server model from Source 1 is a centralized communication paradigm where devices (clients) request services from a central server. It is simple and easy to implement but suffers from latency and single points of failure, making it less suitable for ultra-low-latency or highly resilient IoT deployments. In contrast, Source 2 focuses on constrained devices and real-time processing in IoT, emphasizing the need for efficient resource management and low-latency solutions, such as those provided by RTOS (Real-Time Operating Systems). While the client-server model may not be ideal for constrained devices due to its centralized nature and latency issues, Source 2 suggests that advancements in RTOS and real-time processing could address these challenges, making it more feasible for such environments. The key difference lies in the trade-off between simplicity and centralized control versus the need for efficiency and real-time responsiveness in constrained IoT scenarios.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6825",
+        "6823"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf",
+        "wibph113lgls_ch3.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:43:22.591786"
+    },
+    {
+      "id": "fc6f82bc-3e91-4694-a333-18be5082a6dd",
+      "question": "How do the roles of real-time processing in IoT systems, as described in Text 1, relate to the applications of IoT in smart transportation and digital twin technology mentioned in Text 2?",
+      "reference_answer": "In Text 1, real-time processing is highlighted as critical for IoT systems, ensuring tasks execute under strict timing constraints for safety and reliability, especially in heterogeneous environments like wearable health monitors and industrial automation. Text 2 showcases IoT applications in smart transportation and digital twin technology, such as connected cars, intelligent logistics, and predictive maintenance of municipal assets. The relationship lies in real-time processing being the foundational technology that enables these IoT applications to function effectively, ensuring timely data processing and decision-making in dynamic environments like transportation and asset management.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6809",
+        "6930"
+      ],
+      "source_documents": [
+        "wibph113lgls_ch3.pdf",
+        "sjjm9nom1za9_ch5.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:43:26.310966"
+    },
+    {
+      "id": "640a5373-39f3-430f-8c71-b99a8885ee84",
+      "question": "How do the devices mentioned in Text 1 relate to the foundational components of IoT systems described in Text 2, and what roles do sensors and actuators play in their functionality?",
+      "reference_answer": "The devices in Text 1, such as smart thermostats, lighting systems, and security cameras, are practical applications of IoT technology. These devices rely on the foundational components described in Text 2—sensors and actuators. For example, smart thermostats use sensors to capture temperature data and actuators to adjust heating and cooling systems. Similarly, smart lighting systems use sensors to detect motion or ambient light and actuators to switch lights on or off. Security cameras use sensors to capture video and motion data, while smart locks and alarm systems use actuators to lock/unlock doors or trigger alerts. Thus, the functionality of the devices in Text 1 is directly enabled by the sensors and actuators that bridge the physical and digital worlds, as explained in Text 2.",
+      "question_type": "comparative",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6923",
+        "6690"
+      ],
+      "source_documents": [
+        "sjjm9nom1za9_ch5.pdf",
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_comparative",
+        "chunk_count": 2
+      },
+      "created_at": "2026-04-21T22:43:35.429254"
+    },
+    {
+      "id": "2cf310a0-d1d3-4649-a920-f61e9fbfc16c",
+      "question": "Summarize the key considerations and technologies discussed in the context of IoT systems, including communication protocols, security, and real-world applications.",
+      "reference_answer": "IoT systems rely on various communication protocols like MQTT, LoRaWAN, Zigbee, and IEEE 802.15.4, each optimized for specific use cases such as fleet management, healthcare wearables, smart cities, and agricultural monitoring. These protocols ensure scalability, adaptability, and energy efficiency. Security is critical, with a focus on adopting secure practices, prioritizing open standards, local control paths, and transparent privacy controls in consumer environments. Additionally, system reliability is emphasized, with strategies like shedding noncritical logging and deferring telemetry during utilization spikes to maintain control-loop timing. IoT has evolved from a concept to a practical reality embedded in critical infrastructures, with distinctions emerging between IoT, IoE, and IIoT.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6754",
+        "6844",
+        "6863",
+        "6925",
+        "6618"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf",
+        "2jtkt84a1tgt_ch4.pdf",
+        "wibph113lgls_ch3.pdf",
+        "sjjm9nom1za9_ch5.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:43:41.062935"
+    },
+    {
+      "id": "c78ec191-0558-48c9-af4c-e723ff2bbfcb",
+      "question": "Summarize the key strategies for optimizing energy efficiency in IoT devices and communication systems, and explain how these strategies align with the evolution of IoT technologies like 5G, edge computing, and AI.",
+      "reference_answer": "Energy efficiency in IoT devices and communication systems can be optimized through several strategies. For compute-intensive tasks, offloading signal processing or inference to accelerators (DSP, NPU) and using techniques like quantization and pruning reduce energy consumption. In radio-dominated scenarios, compressing data, delta-encoding, or summarizing at the edge and transmitting only anomaly snippets minimizes energy use. Additionally, duty-cycle radios batch telemetry and synchronize keepalives, while DVFS (Dynamic Voltage and Frequency Scaling) ensures utilization stays below schedulability thresholds under worst-case loads. These strategies align with IoT evolution: 5G enhances throughput and reduces latency, enabling more efficient data transmission; edge computing reduces the need for constant cloud communication by processing data locally; and AI optimizes resource allocation and anomaly detection, further improving energy efficiency. Together, these advancements support the growing demand for energy-efficient, real-time IoT applications.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6779",
+        "6883",
+        "6674",
+        "6708",
+        "6625"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf",
+        "2jtkt84a1tgt_ch4.pdf",
+        "wibph113lgls_ch3.pdf",
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:43:46.746597"
+    },
+    {
+      "id": "972887c2-0292-4fbe-b30c-848cb88a8027",
+      "question": "Summarize the key considerations for designing a secure and efficient IoT system, including communication protocols, real-time requirements, data modeling, and hardware choices.",
+      "reference_answer": "Designing a secure and efficient IoT system involves multiple layers of consideration. For communication, MQTT supports security mechanisms like TLS encryption, client authentication, and ACLs for topic-based access control, ensuring only authorized devices connect and communicate securely. Real-time requirements vary by application, with critical systems needing hard real-time guarantees (e.g., 2 ms control loops with strict latency and jitter targets) and non-critical systems allowing soft real-time. Data modeling should use standardized models (e.g., OGC SensorThings) with versioned schemas and mediation services for cross-domain exchange to ensure compatibility and reduce coupling. Hardware choices depend on connectivity, energy efficiency, and cost: microcontrollers offer low power consumption (<5 milliwatts) and cost (<$5), while SBCs provide higher performance at greater power and cost (>100 watts, >$100). Additionally, real-time systems benefit from lock-free data structures and hardware timers to minimize jitter and ensure predictable performance.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6839",
+        "6753",
+        "6899",
+        "6714",
+        "6749"
+      ],
+      "source_documents": [
+        "2jtkt84a1tgt_ch4.pdf",
+        "wibph113lgls_ch3.pdf",
+        "sjjm9nom1za9_ch5.pdf",
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:43:54.369040"
+    },
+    {
+      "id": "34b2d1cd-d96c-4b1a-99db-6afc4979b782",
+      "question": "What are the key aspects of IoT and its industrial subset (IIoT) in terms of their evolution, architecture, and real-time processing requirements?",
+      "reference_answer": "The Internet of Things (IoT) has evolved through three phases: Identification and Tracking (1990s–2000s) using RFID and barcodes, Sensing and Networking (2000s–2010s), and the current phase of Intelligence and Autonomy. IoT is a core enabler of digital transformation, with applications across healthcare, transportation, energy, and more. Its industrial subset, IIoT, focuses on mission-critical contexts like manufacturing and energy grids, requiring high reliability, security, and scalability, supported by standards like TSN and OPC-UA. IoT architecture emphasizes lightweight, reliable, and secure operating systems with small footprints, while real-time processing demands low Deadline Miss Ratio (DMR), balanced CPU utilization, minimized latency and jitter, and efficient energy consumption. Common interfaces like GPIO, UART, I²C, and SPI facilitate communication in IoT systems.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6621",
+        "6616",
+        "6725",
+        "6700",
+        "6781"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf",
+        "wibph113lgls_ch3.pdf",
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:43:59.347827"
+    },
+    {
+      "id": "259c054e-6512-4cca-b54a-30c854ca8f4d",
+      "question": "What are the key challenges and emerging trends in the integration of AI/ML with IoT, and how do they impact supply chain optimization, privacy, and scalability?",
+      "reference_answer": "The integration of AI and Machine Learning (AI/ML) with IoT, often termed AIoT, is transforming data from connected devices into actionable insights. In supply chain optimization, technologies like RFID tags replace error-prone manual processes, enabling real-time inventory visibility. However, this integration faces challenges such as privacy concerns, as IoT devices collect sensitive personal data, requiring evolving technical mechanisms for compliance with regulations like GDPR. Scalability is another issue, with billions of devices demanding efficient addressing, routing, and management solutions like IPv6. Additionally, edge computing and communication protocols (e.g., MQTT, CoAP) are critical for handling data efficiently across devices. These trends and challenges collectively shape the future of IoT ecosystems, balancing innovation with practical implementation hurdles.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6961",
+        "6624",
+        "6653",
+        "6792",
+        "7027"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf",
+        "wibph113lgls_ch3.pdf",
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:44:06.117219"
+    },
+    {
+      "id": "b9c06bbc-d6fa-4061-bec5-683a593ae964",
+      "question": "Summarize the key emerging trends, challenges, and future directions in IoT, including its communication protocols, data management, and security practices, as discussed in the provided text chunks.",
+      "reference_answer": "The emerging trends in IoT include policy-as-code and privacy-preserving analytics, with a future vision emphasizing timing, safety, privacy, and sustainability. Open challenges involve addressing constraints like bandwidth, power, and post-quantum cryptography (PQC) for constrained nodes. IoT communications rely on protocols like MQTT for versatile applications in transportation and healthcare, while standards such as 6LoWPAN and CoAP enable constrained devices to communicate effectively. Data management focuses on interoperability through shared data models and versioned schemas, and security practices include iterative threat modeling, hardware-based device identity with short-lived credentials, and key lifecycle management involving rotation and revocation.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "7031",
+        "6844",
+        "6611",
+        "6674",
+        "6951"
+      ],
+      "source_documents": [
+        "bv3dwundyqx7_ch6.pdf",
+        "2jtkt84a1tgt_ch4.pdf",
+        "sjjm9nom1za9_ch5.pdf",
+        "hbade9tiqilz_TheIoTchapter1.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:44:09.488540"
+    },
+    {
+      "id": "1c69cc0f-3ea8-4aa9-b1bc-0eb870bef959",
+      "question": "Summarize the key components and challenges of IoT systems, including their role in transforming industries and ensuring security.",
+      "reference_answer": "IoT systems transform industries by integrating sensing, processing, and acting capabilities, exemplified by connected cars and industrial applications. Key components include sensors, actuators, and processing units, with devices like Raspberry Pi and BeagleBone Black serving as versatile IoT platforms. However, significant challenges persist in IoT security, such as managing secure identities for billions of devices, addressing resource constraints in lightweight cryptography, ensuring long-term lifecycle management, and improving user awareness of security practices.",
+      "question_type": "summarization",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [
+        "6706",
+        "6630",
+        "6711",
+        "6908",
+        "6915"
+      ],
+      "source_documents": [
+        "hbade9tiqilz_TheIoTchapter1.pdf",
+        "sjjm9nom1za9_ch5.pdf",
+        "o4v5wc7sn7w4_TheIoTchapter2.pdf"
+      ],
+      "metadata": {
+        "generation_method": "llm_summarization",
+        "chunk_count": 5
+      },
+      "created_at": "2026-04-21T22:44:11.981831"
+    },
+    {
+      "id": "8e0c7a08-c98b-4675-8506-2f21fc851d15",
+      "question": "What are the specific memory requirements for the RTOS in the latest version of the Raspberry Pi microcontroller?",
+      "reference_answer": "No answer available in the provided context",
+      "question_type": "hallucination",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [],
+      "source_documents": [],
+      "metadata": {
+        "generation_method": "llm_hallucination",
+        "domain": "IoT and Technology",
+        "expected_answer": "no_answer"
+      },
+      "created_at": "2026-04-21T22:44:13.508944"
+    },
+    {
+      "id": "7db525ce-26c8-49b5-bb13-90c613610a0d",
+      "question": "What specific programming languages are recommended for implementing the task inventory-based design in IoT nodes?",
+      "reference_answer": "No answer available in the provided context",
+      "question_type": "hallucination",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [],
+      "source_documents": [],
+      "metadata": {
+        "generation_method": "llm_hallucination",
+        "domain": "IoT and Technology",
+        "expected_answer": "no_answer"
+      },
+      "created_at": "2026-04-21T22:44:15.297794"
+    },
+    {
+      "id": "0b2dd6ff-b9e6-443c-9b55-253a516879de",
+      "question": "What specific algorithms are used in the AI analytics for optimizing greenhouse conditions in Dutch smart farms?",
+      "reference_answer": "No answer available in the provided context",
+      "question_type": "hallucination",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [],
+      "source_documents": [],
+      "metadata": {
+        "generation_method": "llm_hallucination",
+        "domain": "IoT and Technology",
+        "expected_answer": "no_answer"
+      },
+      "created_at": "2026-04-21T22:44:16.963875"
+    },
+    {
+      "id": "8a5052f3-8e64-4e22-8159-7135afe76bac",
+      "question": "What are the specific security protocols implemented in NFC to ensure data protection during contactless payments?",
+      "reference_answer": "No answer available in the provided context",
+      "question_type": "hallucination",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [],
+      "source_documents": [],
+      "metadata": {
+        "generation_method": "llm_hallucination",
+        "domain": "IoT and Technology",
+        "expected_answer": "no_answer"
+      },
+      "created_at": "2026-04-21T22:44:18.406058"
+    },
+    {
+      "id": "ca98d289-47b0-4322-97b5-5f25fe4d81b8",
+      "question": "What are the specific penalties or enforcement mechanisms for non-compliance with ETSI EN 303 645 in European countries?",
+      "reference_answer": "No answer available in the provided context",
+      "question_type": "hallucination",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [],
+      "source_documents": [],
+      "metadata": {
+        "generation_method": "llm_hallucination",
+        "domain": "IoT and Technology",
+        "expected_answer": "no_answer"
+      },
+      "created_at": "2026-04-21T22:44:40.493909"
+    },
+    {
+      "id": "525146e2-b413-47be-8a82-57121b77571a",
+      "question": "What specific algorithms are used in Energy-Aware Scheduling to optimize energy consumption in IoT devices?",
+      "reference_answer": "No answer available in the provided context",
+      "question_type": "hallucination",
+      "difficulty": "medium",
+      "language": "en",
+      "source_chunks": [],
+      "source_documents": [],
+      "metadata": {
+        "generation_method": "llm_hallucination",
+        "domain": "IoT and Technology",
+        "expected_answer": "no_answer"
+      },
+      "created_at": "2026-04-21T22:44:42.205075"
+    }
+  ],
+  "retrieval_examples": [
+    {
+      "id": "6c6c1b1b-fd30-45d3-8c72-0175d3433a4f",
+      "query": "What are the advantages of On-Device AI (Edge AI) according to the text?",
+      "relevant_chunks": [
+        "6964"
+      ],
+      "irrelevant_chunks": [
+        "6742",
+        "6669",
+        "6617",
+        "6866",
+        "6840"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "920f744c-2d9b-460c-936e-f125c4e2ed2f"
+      }
+    },
+    {
+      "id": "af94a282-6024-47dc-8e98-3ca2f38b37bf",
+      "query": "What should be done on gateways to ensure real-time performance?",
+      "relevant_chunks": [
+        "6802"
+      ],
+      "irrelevant_chunks": [
+        "6948",
+        "6614",
+        "6663",
+        "6975",
+        "6939"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "45698dd0-b9cb-4c76-a3c9-f34e8512058b"
+      }
+    },
+    {
+      "id": "459a4946-bd1d-4713-a69b-f15729aae861",
+      "query": "What does protocol normalization at the edge reduce according to the text?",
+      "relevant_chunks": [
+        "6737"
+      ],
+      "irrelevant_chunks": [
+        "6988",
+        "6779",
+        "6830",
+        "7006",
+        "6659"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "53490908-54db-4d42-a16c-8ef1de3feb96"
+      }
+    },
+    {
+      "id": "c36f33f1-958f-485a-909e-9fab38def2b7",
+      "query": "What are two key practices recommended for ensuring smart-home longevity according to the text?",
+      "relevant_chunks": [
+        "6925"
+      ],
+      "irrelevant_chunks": [
+        "6987",
+        "7000",
+        "6902",
+        "6651",
+        "6878"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "53179738-02ec-4582-8ecb-35480c97b59d"
+      }
+    },
+    {
+      "id": "40f98265-2533-45ca-8675-bba5fa0717ca",
+      "query": "Who coined the term 'Internet of Things' and in what year?",
+      "relevant_chunks": [
+        "6625"
+      ],
+      "irrelevant_chunks": [
+        "7032",
+        "6973",
+        "6998",
+        "6848",
+        "7003"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "e30d8722-1156-450b-819e-c33d185c8ebf"
+      }
+    },
+    {
+      "id": "c70d2e64-9a9e-4870-9e63-9a8af59ea59a",
+      "query": "What are the two main characteristics of client-server models mentioned in the text?",
+      "relevant_chunks": [
+        "6869"
+      ],
+      "irrelevant_chunks": [
+        "6748",
+        "6908",
+        "6731",
+        "6757",
+        "6782"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "75d3a3c4-a888-4380-bbed-6f8f468837a4"
+      }
+    },
+    {
+      "id": "604311c8-5d07-4580-b1cc-e9edde00e18f",
+      "query": "Which organizations contribute to harmonizing the fragmented IoT ecosystem?",
+      "relevant_chunks": [
+        "7018"
+      ],
+      "irrelevant_chunks": [
+        "6656",
+        "6814",
+        "6901",
+        "6698",
+        "6928"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "f2ece725-ecf8-4742-ab02-6a92d13988db"
+      }
+    },
+    {
+      "id": "898e4381-03bc-46db-82d1-367a5b5d9aba",
+      "query": "Which organizations are leading standardization efforts for IoT interoperability?",
+      "relevant_chunks": [
+        "6638"
+      ],
+      "irrelevant_chunks": [
+        "6847",
+        "6803",
+        "6758",
+        "6934",
+        "6814"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "f90ee853-b6d8-47d8-a0cf-d38e3643826e"
+      }
+    },
+    {
+      "id": "b22a4c45-8a00-47e0-ae79-328722151fcf",
+      "query": "What does TSN intersect with IoT to enable according to the text?",
+      "relevant_chunks": [
+        "7025"
+      ],
+      "irrelevant_chunks": [
+        "6892",
+        "7001",
+        "6878",
+        "6919",
+        "6861"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "2b34070e-c54d-45a0-a6b3-5902a815e78e"
+      }
+    },
+    {
+      "id": "e6c1a461-ee64-4200-b35c-d22d7309daee",
+      "query": "What are the three key capabilities of 5G networks that are uniquely suited to IoT, as mentioned in the text?",
+      "relevant_chunks": [
+        "6999"
+      ],
+      "irrelevant_chunks": [
+        "6928",
+        "6735",
+        "6697",
+        "6910",
+        "6812"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "47a924c4-8e2b-4bf4-8489-f8bf3460a69f"
+      }
+    },
+    {
+      "id": "02ce8f81-3d47-476b-9c93-ebf81d69c354",
+      "query": "What does a loop-centric view of IoT primarily clarify?",
+      "relevant_chunks": [
+        "6664"
+      ],
+      "irrelevant_chunks": [
+        "6640",
+        "7032",
+        "6838",
+        "6987",
+        "6888"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "c503a588-91fd-4e28-93ac-d59e4a0465e0"
+      }
+    },
+    {
+      "id": "896a5612-da08-472a-92e0-c24ea113e6da",
+      "query": "What are the three components typically integrated in hybrid IoT architectures?",
+      "relevant_chunks": [
+        "6688"
+      ],
+      "irrelevant_chunks": [
+        "6710",
+        "6801",
+        "6754",
+        "6629",
+        "6699"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "253d903f-1d21-497f-914e-6c97f561cdaa"
+      }
+    },
+    {
+      "id": "6bdb77b4-71b9-4574-925e-ff6e45fb6411",
+      "query": "What type of device might a smart surveillance camera performing local image analysis require?",
+      "relevant_chunks": [
+        "6715"
+      ],
+      "irrelevant_chunks": [
+        "6741",
+        "6913",
+        "6866",
+        "6745",
+        "6714"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "75e59816-c6f4-40a6-9180-74c85b45b9d6"
+      }
+    },
+    {
+      "id": "e39a5723-9696-4c43-93e9-769d1007b7e8",
+      "query": "What is the typical range of LoRaWAN in rural areas?",
+      "relevant_chunks": [
+        "6846"
+      ],
+      "irrelevant_chunks": [
+        "6834",
+        "6757",
+        "6699",
+        "6644",
+        "6889"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "0bdaed94-de79-4272-84e6-479604156fac"
+      }
+    },
+    {
+      "id": "115aca57-949e-4911-a3aa-53cd5f5ed4d8",
+      "query": "What is the primary requirement for real-time processing in IoT systems according to the text?",
+      "relevant_chunks": [
+        "6809"
+      ],
+      "irrelevant_chunks": [
+        "6908",
+        "6926",
+        "6711",
+        "6980",
+        "6991"
+      ],
+      "language": "en",
+      "difficulty": "easy",
+      "metadata": {
+        "question_type": "factual",
+        "source_question_id": "b059dbac-3c7e-4f0b-a004-a8ec00a01cee"
+      }
+    },
+    {
+      "id": "3caa0cb0-02c7-4dad-92b1-83629e7ab58a",
+      "query": "What are the potential trade-offs of implementing a hybrid approach for smart camera systems, where model training occurs in the cloud and inference runs at the edge, and how might these trade-offs impact the overall effectiveness of the system?",
+      "relevant_chunks": [
+        "6965"
+      ],
+      "irrelevant_chunks": [
+        "6699",
+        "6683",
+        "7004",
+        "6749",
+        "6835"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "b3ab5106-0b3b-4fd0-bd19-87c41ae656d0"
+      }
+    },
+    {
+      "id": "0cd1c80f-6c44-4112-aea8-08da2ba6efca",
+      "query": "What are the potential long-term implications for IoT ecosystems if standardization efforts fail to address protocol fragmentation and security vulnerabilities in lightweight implementations?",
+      "relevant_chunks": [
+        "6875"
+      ],
+      "irrelevant_chunks": [
+        "6694",
+        "6755",
+        "7027",
+        "6908",
+        "6631"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "0ae5c8da-6f17-4471-a2ac-b754e0a04800"
+      }
+    },
+    {
+      "id": "8cc9c352-7c41-45e6-9f0d-03983fc577ff",
+      "query": "Considering the focus on standardization, 5G integration, and real-world applications in the provided text, what are the potential long-term implications for IoT adoption if open research challenges, such as those mentioned in Question 7, remain unresolved?",
+      "relevant_chunks": [
+        "7034"
+      ],
+      "irrelevant_chunks": [
+        "6758",
+        "7021",
+        "6684",
+        "6724",
+        "6610"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "77b93366-7d82-400f-93b6-07e4810d76fc"
+      }
+    },
+    {
+      "id": "86796fc2-5dcf-4bbd-bf74-35c0d911892b",
+      "query": "How does the tiering of workloads across edge, gateway, and cloud tiers contribute to both resilience and auditability in the system?",
+      "relevant_chunks": [
+        "6962"
+      ],
+      "irrelevant_chunks": [
+        "6628",
+        "6794",
+        "6691",
+        "6650",
+        "6985"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "7cd9a130-e577-4bf3-9b43-bdbee0be6685"
+      }
+    },
+    {
+      "id": "d5146143-f549-463a-8079-bef5e671dd9a",
+      "query": "How does the integration of actuators and sensors in closed-loop control systems, as exemplified by a smart thermostat, enhance the efficiency and precision of IoT applications in industrial and robotic systems?",
+      "relevant_chunks": [
+        "6695"
+      ],
+      "irrelevant_chunks": [
+        "6736",
+        "6704",
+        "6881",
+        "6851",
+        "6949"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "e7da7453-8337-43ff-a121-1c2df0f66f40"
+      }
+    },
+    {
+      "id": "bc7a52d6-79f6-4a9e-a500-98e32dad8084",
+      "query": "How do lightweight operating systems like FreeRTOS and Contiki contribute to the effective management of constrained IoT devices, and what implications does this have for the broader IoT ecosystem?",
+      "relevant_chunks": [
+        "6731"
+      ],
+      "irrelevant_chunks": [
+        "6705",
+        "6718",
+        "6673",
+        "6956",
+        "6674"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "aa55e5bf-c498-48cc-b4b4-d1b934a01192"
+      }
+    },
+    {
+      "id": "4203df40-ac1d-4741-8445-eb7d34f4bbc9",
+      "query": "How do energy-efficient scheduling techniques like dynamic voltage scaling and energy-aware scheduling impact the overall system design and deployment considerations in IoT environments?",
+      "relevant_chunks": [
+        "6811"
+      ],
+      "irrelevant_chunks": [
+        "7028",
+        "7029",
+        "6655",
+        "6723",
+        "6988"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "f9c1225f-7aee-4dbf-ab9c-72242129d8dd"
+      }
+    },
+    {
+      "id": "6b8bbed3-398b-4efe-b462-0dcd32bfdc0b",
+      "query": "Considering the strengths of BeagleBone and Raspberry Pi, which platform would be more suitable for a small-scale smart home project, and why?",
+      "relevant_chunks": [
+        "6718"
+      ],
+      "irrelevant_chunks": [
+        "6918",
+        "6801",
+        "6632",
+        "6904",
+        "6966"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "4dab7a64-9452-48bb-af30-96dbe5af655b"
+      }
+    },
+    {
+      "id": "88749f36-945f-4151-a236-062442672085",
+      "query": "Why is it important to induce worst-case interference scenarios during system software verification, and what are the potential consequences if this step is omitted?",
+      "relevant_chunks": [
+        "6772"
+      ],
+      "irrelevant_chunks": [
+        "6701",
+        "6945",
+        "7002",
+        "6653",
+        "6650"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "aa26345d-a0af-4a3c-80c9-5cb2f8917019"
+      }
+    },
+    {
+      "id": "36106766-c7c0-4866-93eb-99963ab7ccf2",
+      "query": "Why is jitter-sensitive control more likely to prefer deterministic or bounded-latency links over high-latency cellular or best-effort links?",
+      "relevant_chunks": [
+        "6880"
+      ],
+      "irrelevant_chunks": [
+        "6695",
+        "6840",
+        "6697",
+        "6648",
+        "6680"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "225b8ede-6f84-49ce-a848-16043ea78b35"
+      }
+    },
+    {
+      "id": "5fcc52ba-5c76-4539-afc1-820aa30afa3d",
+      "query": "Given the vast diversity of IoT devices and the continuous data streams they generate, what potential challenges might arise in ensuring data interoperability and meaningful analysis across different types of devices and industries?",
+      "relevant_chunks": [
+        "6609"
+      ],
+      "irrelevant_chunks": [
+        "6714",
+        "6905",
+        "6626",
+        "6810",
+        "6926"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "d69ba5ca-fbe3-49db-bb6e-d96290f15e31"
+      }
+    },
+    {
+      "id": "7e188e9a-db30-49aa-bacc-3dacee12d547",
+      "query": "How does the recognition of IoT as a non-monolithic concept influence the approach of students and professionals specializing in the field?",
+      "relevant_chunks": [
+        "6658"
+      ],
+      "irrelevant_chunks": [
+        "6615",
+        "6990",
+        "6849",
+        "6957",
+        "6725"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "fda0f5f8-0891-477b-8c72-18112b295252"
+      }
+    },
+    {
+      "id": "a17e9db8-852f-4741-9b3d-81cde21956b6",
+      "query": "What are the potential implications of failing to effectively manage multirate systems in IoT, particularly on MCU-class devices?",
+      "relevant_chunks": [
+        "6748"
+      ],
+      "irrelevant_chunks": [
+        "6628",
+        "6891",
+        "6634",
+        "6779",
+        "6722"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "4386fcf0-da52-4535-adfb-121682556813"
+      }
+    },
+    {
+      "id": "bc67ccd5-2cd7-472c-9b4d-9182b5929f22",
+      "query": "What are the potential broader implications for the retail industry if RFID technology becomes widely adopted for inventory management, beyond the immediate benefits of efficiency and waste reduction?",
+      "relevant_chunks": [
+        "6624"
+      ],
+      "irrelevant_chunks": [
+        "6903",
+        "6774",
+        "6965",
+        "7000",
+        "6678"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "dd8ab615-dbdb-49f7-8327-8d6816fb6aa2"
+      }
+    },
+    {
+      "id": "4dd2ef5b-44ac-43d9-8e17-8e82d0f4d462",
+      "query": "Considering the options provided for federated learning in production, why might 'Adaptive client selection and differential privacy' (Option B) be more beneficial than 'Arbitrary clients' (Option A)?",
+      "relevant_chunks": [
+        "7024"
+      ],
+      "irrelevant_chunks": [
+        "6786",
+        "6680",
+        "6636",
+        "6707",
+        "6926"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "analytical",
+        "source_question_id": "30d49d36-0003-4053-ab8e-6a35172d6fd8"
+      }
+    },
+    {
+      "id": "ce80e0e5-1296-433d-a1d0-67d52afbf9be",
+      "query": "How do the practical applications of IoT devices (as described in Text 1) relate to the technical considerations of IoT architecture and components (as outlined in Text 2)?",
+      "relevant_chunks": [
+        "6923",
+        "6736"
+      ],
+      "irrelevant_chunks": [
+        "7017",
+        "6827",
+        "6660",
+        "7027",
+        "6947"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "eacd0fb4-8185-43d5-b8ca-e8286cdc7ca4"
+      }
+    },
+    {
+      "id": "77535db4-b533-41bc-9992-4b2cf058cb89",
+      "query": "How do the technical details of IoT communications (as discussed in Text 1) relate to the broader understanding of IoT as a technological and social construct (as described in Text 2)?",
+      "relevant_chunks": [
+        "6880",
+        "6658"
+      ],
+      "irrelevant_chunks": [
+        "6937",
+        "6720",
+        "6956",
+        "6642",
+        "7033"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "e472e656-e479-4414-88a4-d2ebc4178e73"
+      }
+    },
+    {
+      "id": "aef872cc-d89a-4b99-92eb-1109f092e6e9",
+      "query": "How do the approaches to security in ultra-constrained microcontrollers (Text 1) and comprehensive threat modeling (Text 2) differ in their focus and implementation strategies?",
+      "relevant_chunks": [
+        "6840",
+        "6903"
+      ],
+      "irrelevant_chunks": [
+        "6765",
+        "6882",
+        "6789",
+        "7010",
+        "6796"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "87fb7e97-1b01-4907-8fa9-319300d3dd99"
+      }
+    },
+    {
+      "id": "1bef4379-81e8-4eb8-8a8e-77aae5023074",
+      "query": "How do the communication protocols discussed in Source 2 relate to the emerging trends and future directions of IoT mentioned in Source 1, particularly in the context of edge AI and 5G transformation?",
+      "relevant_chunks": [
+        "7033",
+        "6845"
+      ],
+      "irrelevant_chunks": [
+        "6957",
+        "6762",
+        "7010",
+        "6947",
+        "6756"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "f78d0a8b-ca5a-48d3-b524-f6512d6376ec"
+      }
+    },
+    {
+      "id": "55f59672-e8fe-4d3a-8644-afb03a101791",
+      "query": "How does the client-server model described in Source 1 compare to the considerations for constrained devices and real-time processing in IoT applications discussed in Source 2 in terms of suitability and challenges?",
+      "relevant_chunks": [
+        "6825",
+        "6823"
+      ],
+      "irrelevant_chunks": [
+        "6933",
+        "6675",
+        "6761",
+        "6767",
+        "6789"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "f9ff8d2c-12b1-4be7-8a77-e1621c949f34"
+      }
+    },
+    {
+      "id": "c9887f16-edcf-4797-9b03-bd735a3c1245",
+      "query": "How do the roles of real-time processing in IoT systems, as described in Text 1, relate to the applications of IoT in smart transportation and digital twin technology mentioned in Text 2?",
+      "relevant_chunks": [
+        "6809",
+        "6930"
+      ],
+      "irrelevant_chunks": [
+        "6876",
+        "6909",
+        "6851",
+        "6683",
+        "6621"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "fc6f82bc-3e91-4694-a333-18be5082a6dd"
+      }
+    },
+    {
+      "id": "fdb922b9-5845-476e-b012-5b0398db6173",
+      "query": "How do the devices mentioned in Text 1 relate to the foundational components of IoT systems described in Text 2, and what roles do sensors and actuators play in their functionality?",
+      "relevant_chunks": [
+        "6923",
+        "6690"
+      ],
+      "irrelevant_chunks": [
+        "6697",
+        "6918",
+        "6705",
+        "6873",
+        "6944"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "comparative",
+        "source_question_id": "640a5373-39f3-430f-8c71-b99a8885ee84"
+      }
+    },
+    {
+      "id": "f0cf7275-f4db-477b-8f18-9c691e455784",
+      "query": "Summarize the key considerations and technologies discussed in the context of IoT systems, including communication protocols, security, and real-world applications.",
+      "relevant_chunks": [
+        "6754",
+        "6844",
+        "6863",
+        "6925",
+        "6618"
+      ],
+      "irrelevant_chunks": [
+        "7030",
+        "6698",
+        "6729",
+        "6625",
+        "6950"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "2cf310a0-d1d3-4649-a920-f61e9fbfc16c"
+      }
+    },
+    {
+      "id": "1c2b413d-decf-4ce4-8b1a-6f7c0ca9fb7e",
+      "query": "Summarize the key strategies for optimizing energy efficiency in IoT devices and communication systems, and explain how these strategies align with the evolution of IoT technologies like 5G, edge computing, and AI.",
+      "relevant_chunks": [
+        "6779",
+        "6883",
+        "6674",
+        "6708",
+        "6625"
+      ],
+      "irrelevant_chunks": [
+        "6618",
+        "6690",
+        "6607",
+        "6916",
+        "6707"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "c78ec191-0558-48c9-af4c-e723ff2bbfcb"
+      }
+    },
+    {
+      "id": "5bff92f3-4c51-42ee-a8a1-9c6d4eda57a2",
+      "query": "Summarize the key considerations for designing a secure and efficient IoT system, including communication protocols, real-time requirements, data modeling, and hardware choices.",
+      "relevant_chunks": [
+        "6839",
+        "6753",
+        "6899",
+        "6714",
+        "6749"
+      ],
+      "irrelevant_chunks": [
+        "6660",
+        "6781",
+        "6798",
+        "6869",
+        "6932"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "972887c2-0292-4fbe-b30c-848cb88a8027"
+      }
+    },
+    {
+      "id": "1b0e901f-75c2-4245-a2a9-b89155c30d24",
+      "query": "What are the key aspects of IoT and its industrial subset (IIoT) in terms of their evolution, architecture, and real-time processing requirements?",
+      "relevant_chunks": [
+        "6621",
+        "6616",
+        "6725",
+        "6700",
+        "6781"
+      ],
+      "irrelevant_chunks": [
+        "6862",
+        "6810",
+        "6733",
+        "6917",
+        "6932"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "34b2d1cd-d96c-4b1a-99db-6afc4979b782"
+      }
+    },
+    {
+      "id": "4b1608ed-faa4-4ad5-a318-e6fcd8abd069",
+      "query": "What are the key challenges and emerging trends in the integration of AI/ML with IoT, and how do they impact supply chain optimization, privacy, and scalability?",
+      "relevant_chunks": [
+        "6961",
+        "6624",
+        "6653",
+        "6792",
+        "7027"
+      ],
+      "irrelevant_chunks": [
+        "6862",
+        "6727",
+        "6876",
+        "6755",
+        "6893"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "259c054e-6512-4cca-b54a-30c854ca8f4d"
+      }
+    },
+    {
+      "id": "9a506462-491f-4cb3-acbc-ee43d7ccb3c9",
+      "query": "Summarize the key emerging trends, challenges, and future directions in IoT, including its communication protocols, data management, and security practices, as discussed in the provided text chunks.",
+      "relevant_chunks": [
+        "7031",
+        "6844",
+        "6611",
+        "6674",
+        "6951"
+      ],
+      "irrelevant_chunks": [
+        "6830",
+        "6818",
+        "6995",
+        "6652",
+        "6897"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "b9c06bbc-d6fa-4061-bec5-683a593ae964"
+      }
+    },
+    {
+      "id": "f1b4979c-f9e2-4807-a672-7671e5a1d22a",
+      "query": "Summarize the key components and challenges of IoT systems, including their role in transforming industries and ensuring security.",
+      "relevant_chunks": [
+        "6706",
+        "6630",
+        "6711",
+        "6908",
+        "6915"
+      ],
+      "irrelevant_chunks": [
+        "6967",
+        "6735",
+        "6610",
+        "6955",
+        "6993"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "summarization",
+        "source_question_id": "1c69cc0f-3ea8-4aa9-b1bc-0eb870bef959"
+      }
+    },
+    {
+      "id": "cda5eb13-7520-4d66-b7bc-c8e0c2c9bf7f",
+      "query": "What are the specific memory requirements for the RTOS in the latest version of the Raspberry Pi microcontroller?",
+      "relevant_chunks": [],
+      "irrelevant_chunks": [
+        "6705",
+        "6841",
+        "6707",
+        "6942",
+        "6802"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "hallucination",
+        "source_question_id": "8e0c7a08-c98b-4675-8506-2f21fc851d15"
+      }
+    },
+    {
+      "id": "9b92ca7f-03c3-42e5-bbfd-4c12fdad2e7e",
+      "query": "What specific programming languages are recommended for implementing the task inventory-based design in IoT nodes?",
+      "relevant_chunks": [],
+      "irrelevant_chunks": [
+        "7002",
+        "6860",
+        "6753",
+        "6921",
+        "6729"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "hallucination",
+        "source_question_id": "7db525ce-26c8-49b5-bb13-90c613610a0d"
+      }
+    },
+    {
+      "id": "7278d524-96d1-48ff-b7df-894f1c5f195a",
+      "query": "What specific algorithms are used in the AI analytics for optimizing greenhouse conditions in Dutch smart farms?",
+      "relevant_chunks": [],
+      "irrelevant_chunks": [
+        "6833",
+        "6955",
+        "6901",
+        "6663",
+        "6894"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "hallucination",
+        "source_question_id": "0b2dd6ff-b9e6-443c-9b55-253a516879de"
+      }
+    },
+    {
+      "id": "73154a02-c3e4-483b-b3e7-6d65df55e08a",
+      "query": "What are the specific security protocols implemented in NFC to ensure data protection during contactless payments?",
+      "relevant_chunks": [],
+      "irrelevant_chunks": [
+        "6791",
+        "6897",
+        "7033",
+        "6948",
+        "6619"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "hallucination",
+        "source_question_id": "8a5052f3-8e64-4e22-8159-7135afe76bac"
+      }
+    },
+    {
+      "id": "b0b84040-60bf-4a04-9b60-4b62484e293d",
+      "query": "What are the specific penalties or enforcement mechanisms for non-compliance with ETSI EN 303 645 in European countries?",
+      "relevant_chunks": [],
+      "irrelevant_chunks": [
+        "6693",
+        "6936",
+        "6673",
+        "6876",
+        "6800"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "hallucination",
+        "source_question_id": "ca98d289-47b0-4322-97b5-5f25fe4d81b8"
+      }
+    },
+    {
+      "id": "6421d0a2-6cf8-40dc-86e8-2e169a97bb6c",
+      "query": "What specific algorithms are used in Energy-Aware Scheduling to optimize energy consumption in IoT devices?",
+      "relevant_chunks": [],
+      "irrelevant_chunks": [
+        "6849",
+        "6739",
+        "6805",
+        "6939",
+        "7035"
+      ],
+      "language": "en",
+      "difficulty": "medium",
+      "metadata": {
+        "question_type": "hallucination",
+        "source_question_id": "525146e2-b413-47be-8a82-57121b77571a"
+      }
+    }
+  ],
+  "statistics": {
+    "total_questions": 50,
+    "total_retrieval_examples": 50,
+    "questions_by_type": {
+      "factual": 15,
+      "analytical": 15,
+      "comparative": 7,
+      "summarization": 7,
+      "hallucination": 6
+    },
+    "questions_by_difficulty": {
+      "easy": 14,
+      "medium": 36,
+      "hard": 0
+    },
+    "questions_by_language": {
+      "en": 50
+    },
+    "average_answer_length": 431.98,
+    "unique_source_documents": 6,
+    "unique_chunks_used": 70
+  }
+}
