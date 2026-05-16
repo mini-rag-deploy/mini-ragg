@@ -1,8 +1,8 @@
 <!-- <p align="center">
-  <img src="docs/hero_banner.png" alt="Mini-RAG — Enterprise Document Intelligence Platform" width="100%"/>
+  <img src="docs/hero_banner.png" alt="Agentic-RAG — Enterprise Document Intelligence Platform" width="100%"/>
 </p> -->
 
-<h1 align="center">Mini-RAG</h1>
+<h1 align="center">Agentic-RAG</h1>
 
 <p align="center">
   <strong>Enterprise-Grade Document Intelligence Platform</strong><br/>
@@ -32,7 +32,7 @@
 
 ## 🎯 Overview
 
-**Mini-RAG** is a production-ready, enterprise-grade Retrieval-Augmented Generation system designed for **high-accuracy document retrieval and question answering** across multi-format, multi-lingual corpora. It goes far beyond basic RAG implementations by incorporating:
+**Agentic-RAG** is a production-ready, enterprise-grade Retrieval-Augmented Generation system designed for **high-accuracy document retrieval and question answering** across multi-format, multi-lingual corpora. It goes far beyond basic RAG implementations by incorporating:
 
 - 🤖 **Agentic RAG with Dynamic Source Selection** — LLM-powered agent that decides when more information is needed and routes to the best source (Vector DB, Internet)
 - 🧠 **Self-correcting AI workflow** via LangGraph with hallucination detection and iterative refinement
@@ -83,7 +83,7 @@ The system operates as a **6-phase pipeline** with feedback loops and an agentic
 
 ### 1. Agentic RAG with Dynamic Source Selection
 
-Mini-RAG goes beyond standard RAG by introducing an **intelligent agent layer** that dynamically decides whether retrieved context is sufficient and autonomously fetches additional information from external sources when needed.
+Agentic-RAG goes beyond standard RAG by introducing an **intelligent agent layer** that dynamically decides whether retrieved context is sufficient and autonomously fetches additional information from external sources when needed.
 
 ```mermaid
 graph LR
@@ -131,7 +131,7 @@ Every generated answer passes through a **multi-stage audit pipeline** with stri
 
 ### 3. 5-Stage Advanced Retrieval Pipeline
 
-Standard RAG retrieves top-K documents from a vector database. Mini-RAG implements a **multi-stage retrieval funnel** that maximizes both recall and precision:
+Standard RAG retrieves top-K documents from a vector database. Agentic-RAG implements a **multi-stage retrieval funnel** that maximizes both recall and precision:
 
 | Stage | Technique | Purpose | Over-retrieval |
 |-------|-----------|---------|---------------|
@@ -153,10 +153,10 @@ final = self.reranker.rerank(query, fused, top_k=5)      # Cross-encoder rescori
 
 ### 4. Hybrid Text-Image Chunking
 
-Most RAG systems treat images as separate entities, losing their contextual relationship with surrounding text. Mini-RAG's `HybridChunker` solves this:
+Most RAG systems treat images as separate entities, losing their contextual relationship with surrounding text. Agentic-RAG's `HybridChunker` solves this:
 
 ```
-Traditional Approach:                    Mini-RAG Hybrid Approach:
+Traditional Approach:                    Agentic-RAG Hybrid Approach:
 ┌──────────────┐ ┌──────────┐           ┌─────────────────────────────────┐
 │  Text Chunk  │ │  Image   │           │  Text paragraph...              │
 │  (no image   │ │  (no text│           │                                 │
@@ -200,7 +200,7 @@ After:   [Context: This chunk appears in Article 47 of the Egypt Labor Law No. 1
 
 ## 📊 Evaluation & Benchmarks
 
-Mini-RAG includes a **built-in evaluation framework** that measures 15+ metrics across the full pipeline:
+Agentic-RAG includes a **built-in evaluation framework** that measures 15+ metrics across the full pipeline:
 
 ### Retrieval Metrics
 | Metric | Description |
@@ -290,7 +290,7 @@ The system deploys as a **12-service Docker Compose** stack with full observabil
 ## 📂 Project Structure
 
 ```
-mini-rag/
+Agentic-rag/
 │
 ├── src/
 │   ├── main.py                        # FastAPI application entry point
@@ -372,8 +372,8 @@ mini-rag/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mini-rag.git
-cd mini-rag
+git clone https://github.com/yourusername/Agentic-rag.git
+cd Agentic-rag
 
 # Configure environment
 cp docker/env/.env.app.example docker/env/.env.app
@@ -391,8 +391,8 @@ curl http://localhost/api/v1/
 
 ```bash
 # Create conda environment
-conda create -n mini-rag python=3.10
-conda activate mini-rag
+conda create -n Agentic-rag python=3.10
+conda activate Agentic-rag
 
 # Install dependencies
 pip install -r src/requirements.txt
@@ -503,7 +503,7 @@ python -m evaluation.cli report --results-path results/latest.json
 | **Hybrid chunking over separate image indexing** | Preserving text-image context proximity dramatically improves retrieval relevance for documents with diagrams, tables in images, and annotated figures |
 | **RRF over learned fusion** | RRF is model-free, requires no training data, and works across different score scales (cosine similarity vs BM25). More robust in production than learned weighting |
 | **Cross-encoder reranking as final stage** | Bi-encoders are fast but shallow; cross-encoders see query+document jointly. Placing reranking after RRF gives it the best candidate pool while keeping latency acceptable (~418ms) |
-| **LangGraph over chain-of-thought** | State machines provide explicit control flow, better observability, and deterministic retry logic compared to free-form chain prompting |
+| **LangGraph over chain-of-thought** | State machines provide explicit control flow, better observability, and deterAgenticstic retry logic compared to free-form chain prompting |
 | **PGVector as primary (not Qdrant)** | Co-locates vectors with relational metadata in a single PostgreSQL instance, reducing operational complexity. Qdrant available as alternative for scale-out scenarios |
 | **4-level API key failover** | Sustained evaluation runs (50+ questions) can exhaust single API quotas. Cascading keys with rate limiting ensure uninterrupted operation |
 | **Arabic-first design** | OCR (`ara+eng`), BM25 tokenization, sentence splitting regex, and all prompts handle Arabic natively — not as an afterthought |
