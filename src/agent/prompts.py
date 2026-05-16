@@ -14,11 +14,29 @@ These prompts enable the system to:
 #    Output: JSON {"need_more": bool, "reason": "..."}
 # ──────────────────────────────────────────────────────────────
 NEED_MORE_DETAILS_PROMPT = """\
-You are an information sufficiency evaluator for a RAG system.
+You are an information sufficiency evaluator for a RAG system specialized in IoT (Internet of Things) topics.
 
 ## Your Task
-Analyze whether the current context provides enough information to answer the user's question
-with high confidence and completeness. Consider both the quality and relevance of available information.
+Analyze the user's question and current context to determine:
+1. Is the question within the IoT domain scope?
+2. If yes, is the current context sufficient to answer it?
+
+## Domain Scope Definition
+**IoT Domain includes:**
+- IoT architecture, layers (perception, network, application)
+- IoT devices, sensors, actuators, gateways
+- IoT protocols (MQTT, CoAP, OPC-UA, etc.)
+- IoT networks (LoRaWAN, Zigbee, 6LoWPAN, etc.)
+- Industrial IoT (IIoT), smart factories, manufacturing
+- IoT security, privacy, authentication
+- IoT applications (smart cities, healthcare, agriculture, etc.)
+- IoT standards (TSN, IEEE, IETF, etc.)
+
+**NOT in IoT Domain:**
+- Sports, celebrities, entertainment
+- General history, geography, politics
+- Unrelated technology (pure software, databases without IoT context)
+- Personal questions, general knowledge
 
 ## Inputs
 Question: {question}
@@ -29,26 +47,30 @@ Current Context:
 Current Answer (if any):
 {answer}
 
-## Evaluation Criteria
-Score "need_more: true" if ANY of these apply:
-- The context is empty or contains no relevant information
-- The context is too vague or generic to provide a specific answer
-- The question asks for real-time data (weather, stock prices, current events)
-- The question requires external tools (calculations, API calls, conversions)
-- The question asks about information outside the document scope (e.g., "What's the weather?")
-- The answer explicitly states insufficient information
-- Key facts or details are missing to fully answer the question
+## Decision Logic
 
-Score "need_more: false" if:
-- The context contains sufficient, relevant information to answer completely
-- The answer is comprehensive and grounded in the context
-- No external data or tools are required
+### Case 1: Question is OUT OF SCOPE
+If the question is clearly NOT related to IoT topics:
+- Return {{"need_more": false, "reason": "Question is outside the IoT domain scope (e.g., about sports/celebrities/unrelated topics)"}}
+- Examples: "Who is Messi?", "What is the capital of France?"
+
+### Case 2: Question is IN SCOPE but context is SUFFICIENT
+If the question is IoT-related AND context has enough information:
+- Return {{"need_more": false, "reason": "Context provides sufficient IoT-related information"}}
+
+### Case 3: Question is IN SCOPE but context is INSUFFICIENT
+If the question is IoT-related BUT context is empty/incomplete/lacks details:
+- Return {{"need_more": true, "reason": "Question is IoT-related but context lacks details about [specific aspect]"}}
+- Examples: 
+  - "Question about OPC-UA security but context only mentions OPC-UA basics"
+  - "Question about IIoT applications but context is empty"
+  - "Question about latest IoT standards but context has outdated info"
 
 ## Output Format
 Return a single, valid JSON object — no markdown, no explanation outside the JSON.
 
-{{"need_more": true, "reason": "<why more information is needed>"}}
-{{"need_more": false, "reason": "<why current context is sufficient>"}}
+{{"need_more": true, "reason": "<specific reason why more IoT information is needed>"}}
+{{"need_more": false, "reason": "<reason: either sufficient context OR out of scope>"}}
 """
 
 
@@ -72,72 +94,25 @@ Choose the most appropriate source based on the nature of the query.
 
 ## Available Sources
 
-### 1. vector_db
-- Internal document collection (PDFs, text files, knowledge base)
-- Best for: domain-specific knowledge, company documents, technical documentation
-- Use when: the question is about topics that should be in your documents
-
-### 2. tools
-- External APIs, calculators, converters, database queries
-- Best for: computations, data transformations, structured data lookups
-- Use when: the question requires calculation, conversion, or API calls
-- Available tools: {available_tools}
-
-### 3. internet
+### 1. internet (ONLY AVAILABLE SOURCE)
 - Live web search for current information
-- Best for: real-time data, current events, latest information, general knowledge
-- Use when: the question asks for up-to-date information not in documents
+- Best for: real-time data, current events, latest information, additional details
+- Use when: the question is IoT-related but context is insufficient
 
 ## Selection Rules
 1. **CRITICAL**: NEVER select a source that appears in "Previous sources tried" in the context above
-2. Prefer "vector_db" if the question is about topics in your document domain AND it hasn't been tried yet
-3. Choose "tools" if the question requires computation or API calls
-4. Choose "internet" for real-time data, current events, or general knowledge
-5. If all sources have been tried, select "vector_db" as fallback
+2. **ALWAYS select "internet"** as the only external source available
+3. If "internet" was already tried, do not select any source (return "internet" anyway as fallback)
 
 ## Output Format
 Return a single, valid JSON object — no markdown, no explanation outside the JSON.
 
-{{"source": "vector_db", "reason": "<why this source is best>", "query": "<optimized query for this source>"}}
-{{"source": "tools", "reason": "<why this source is best>", "tool_name": "<specific tool to use>", "tool_params": {{"param": "value"}}}}
-{{"source": "internet", "reason": "<why this source is best>", "query": "<search query>"}}
+{{"source": "internet", "reason": "<why internet search is needed>", "query": "<search query>"}}
 """
 
 
 # ──────────────────────────────────────────────────────────────
-# 3. TOOL PARAMETER EXTRACTION
-#    Task: Extract parameters needed for a specific tool
-#    Output: JSON with tool parameters
-# ──────────────────────────────────────────────────────────────
-TOOL_PARAMS_EXTRACTION_PROMPT = """\
-You are a parameter extraction assistant for tool execution.
-
-## Your Task
-Extract the required parameters from the user's question to call the specified tool.
-
-## Question
-{question}
-
-## Tool Information
-Tool Name: {tool_name}
-Tool Description: {tool_description}
-Required Parameters: {required_params}
-
-## Instructions
-1. Analyze the question and extract values for each required parameter
-2. Use reasonable defaults if a parameter is not explicitly mentioned
-3. Ensure parameter types match the tool's requirements
-4. Return a valid JSON object with all required parameters
-
-## Output Format
-Return a single, valid JSON object — no markdown, no explanation outside the JSON.
-
-{{"param1": "value1", "param2": "value2", ...}}
-"""
-
-
-# ──────────────────────────────────────────────────────────────
-# 4. INTERNET QUERY OPTIMIZATION
+# 3. INTERNET QUERY OPTIMIZATION
 #    Task: Convert a question into an optimal web search query
 #    Output: Plain text search query
 # ──────────────────────────────────────────────────────────────

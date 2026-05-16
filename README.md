@@ -6,13 +6,14 @@
 
 <p align="center">
   <strong>Enterprise-Grade Document Intelligence Platform</strong><br/>
-  <em>Production-ready RAG system with self-correcting AI, hybrid retrieval, and multi-modal document understanding</em>
+  <em>Production-ready Agentic RAG system with self-correcting AI, dynamic source selection, hybrid retrieval, and multi-modal document understanding</em>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/LangGraph-0.2.50-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Agentic_RAG-Dynamic_Routing-8B5CF6?style=for-the-badge&logo=robot&logoColor=white"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
   <img src="https://img.shields.io/badge/PostgreSQL-PGVector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white"/>
 </p>
@@ -33,6 +34,7 @@
 
 **Mini-RAG** is a production-ready, enterprise-grade Retrieval-Augmented Generation system designed for **high-accuracy document retrieval and question answering** across multi-format, multi-lingual corpora. It goes far beyond basic RAG implementations by incorporating:
 
+- 🤖 **Agentic RAG with Dynamic Source Selection** — LLM-powered agent that decides when more information is needed and routes to the best source (Vector DB, Internet)
 - 🧠 **Self-correcting AI workflow** via LangGraph with hallucination detection and iterative refinement
 - 🔍 **5-stage advanced retrieval pipeline** — Multi-Query → HyDE → Hybrid Search → RRF Fusion → Cross-Encoder Reranking
 - 📄 **Multi-modal document ingestion** — PDF, DOCX, PPTX, Images, URLs with OCR and embedded image extraction
@@ -51,55 +53,83 @@
   <img src="docs/architecture_diagram.png" alt="System Architecture" width="90%"/>
 </p>
 
-The system operates as a **5-phase pipeline** with feedback loops:
+The system operates as a **6-phase pipeline** with feedback loops and an agentic decision layer:
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              DOCUMENT INTELLIGENCE PIPELINE                            │
-├─────────────┬──────────────┬──────────────┬───────────────┬───────────────────────────┤
-│  📄 INGEST  │  🧩 CHUNK    │  💾 INDEX    │  🔎 RETRIEVE  │  🤖 GENERATE              │
-│             │              │              │               │                           │
-│ Multi-format│ Hybrid       │ Vector DB    │ Multi-Query   │ LangGraph                 │
-│ Loader      │ Text+Image   │ (PGVector/   │ Expansion     │ Self-Correcting           │
-│      ↓      │ Chunker      │  Qdrant)     │      ↓        │ RAG Workflow              │
-│ OCR Engine  │      ↓       │      +       │ Hybrid Search │      ↓                    │
-│ (Tesseract) │ AI Context-  │ BM25 Index   │ (Dense+BM25)  │ Retrieve → Grade          │
-│      ↓      │ ualizer      │              │      ↓        │   → Generate              │
-│ Table       │              │              │ RRF Fusion    │   → Hallucination Check   │
-│ Extractor   │              │              │      ↓        │   → Quality Audit         │
-│             │              │              │ Cross-Encoder │   → Rewrite (if needed)   │
-│             │              │              │ Reranking     │   → ✅ Final Answer        │
-└─────────────┴──────────────┴──────────────┴───────────────┴───────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    DOCUMENT INTELLIGENCE PIPELINE                                          │
+├─────────────┬──────────────┬──────────────┬───────────────┬──────────────────────┬────────────────────────┤
+│  📄 INGEST  │  🧩 CHUNK    │  💾 INDEX    │  🔎 RETRIEVE  │  🤖 GENERATE          │  🧠 AGENT (NEW)       │
+│             │              │              │               │                      │                        │
+│ Multi-format│ Hybrid       │ Vector DB    │ Multi-Query   │ LangGraph            │ Source Router          │
+│ Loader      │ Text+Image   │ (PGVector/   │ Expansion     │ Self-Correcting      │ (LLM Decision)        │
+│      ↓      │ Chunker      │  Qdrant)     │      ↓        │ RAG Workflow         │      ↓                │
+│ OCR Engine  │      ↓       │      +       │ Hybrid Search │      ↓               │ Internet Retriever    │
+│ (Tesseract) │ AI Context-  │ BM25 Index   │ (Dense+BM25)  │ Retrieve → Grade    │ (Tavily + Fallback)   │
+│      ↓      │ ualizer      │              │      ↓        │   → Generate        │      ↓                │
+│ Table       │              │              │ RRF Fusion    │   → Evaluate Context │ Context Integration   │
+│ Extractor   │              │              │      ↓        │   → Hallucination ✓ │      ↓                │
+│             │              │              │ Cross-Encoder │   → Quality Audit   │ Merge → Re-Generate   │
+│             │              │              │ Reranking     │   → ✅ Final Answer  │                        │
+└─────────────┴──────────────┴──────────────┴───────────────┴──────────────────────┴────────────────────────┘
+                                                                       │                      ↑
+                                                                       │  Need more info?     │
+                                                                       └──────────────────────┘
 ```
 
 ---
 
 ## 🧠 Key Technical Innovations
 
-### 1. Self-Correcting RAG with LangGraph
+### 1. Agentic RAG with Dynamic Source Selection
 
-Unlike standard retrieve-and-generate pipelines, Mini-RAG implements a **state machine** that validates its own output:
+Mini-RAG goes beyond standard RAG by introducing an **intelligent agent layer** that dynamically decides whether retrieved context is sufficient and autonomously fetches additional information from external sources when needed.
 
 ```mermaid
 graph LR
     A[Retrieve] --> B[Grade Documents]
     B -->|Relevant docs found| C[Generate Answer]
     B -->|No relevant docs| D[Rewrite Query]
-    C --> E{Hallucination Check}
-    E -->|Grounded ✅| F{Quality Audit}
-    E -->|Hallucination ❌| D
-    F -->|Complete ✅| G[✅ Final Answer]
-    F -->|Incomplete ❌| D
+    C --> E{Evaluate Context}
+    E -->|Sufficient ✅| F{Hallucination Check}
+    E -->|Need more info 🔍| H[Route Source]
+    H --> I[Fetch Data]
+    I -->|Internet results| C
+    F -->|Grounded ✅| G{Quality Audit}
+    F -->|Hallucination ❌| D
+    G -->|Complete ✅| J[✅ Final Answer]
+    G -->|Incomplete ❌| D
     D --> A
+
+    style E fill:#8B5CF6,color:#fff
+    style H fill:#8B5CF6,color:#fff
+    style I fill:#8B5CF6,color:#fff
 ```
 
-**Each node** is backed by specialized LLM prompts with strict JSON output enforcement:
+The **purple nodes** represent the new agentic layer, powered by three core components:
+
+| Component | Role | Implementation |
+|-----------|------|----------------|
+| **SourceRouter** | LLM-powered decision engine — evaluates context sufficiency and selects the optimal source | `agent/source_router.py` |
+| **InternetRetriever** | Live web search with backend fallback (Tavily → Mock) | `agent/internet_retriever.py` |
+| **Agent Prompts** | Specialized prompts for need-assessment, source selection, query optimization, and context integration | `agent/prompts.py` |
+
+**How it works:**
+1. **Evaluate Context** — After initial retrieval + generation, the agent asks: *"Is the current context sufficient to answer this question?"*
+2. **Route Source** — If more information is needed, the agent selects the best external source (currently Internet via Tavily API)
+3. **Fetch & Merge** — External data is fetched, converted to the document format, and merged with existing context
+4. **Re-generate** — The LLM generates a new, enriched answer using the combined context
+5. **Loop Guard** — Configurable `max_agentic_iterations` (default: 2) prevents infinite loops
+
+### 2. Self-Correcting RAG with LangGraph
+
+Every generated answer passes through a **multi-stage audit pipeline** with strict JSON output enforcement:
 - **Retrieval Grader** — Scores each document's relevance before using it
 - **Hallucination Auditor** — Verifies every claim traces back to source documents
 - **Answer Quality Auditor** — Checks completeness, relevance, and specificity
 - **Query Rewriter** — Reformulates queries using domain-specific terminology on failure
 
-### 2. 5-Stage Advanced Retrieval Pipeline
+### 3. 5-Stage Advanced Retrieval Pipeline
 
 Standard RAG retrieves top-K documents from a vector database. Mini-RAG implements a **multi-stage retrieval funnel** that maximizes both recall and precision:
 
@@ -121,7 +151,7 @@ fused = self.rrf_fusion.fuse(*all_results, top_k=20)     # Rank-based fusion
 final = self.reranker.rerank(query, fused, top_k=5)      # Cross-encoder rescoring
 ```
 
-### 3. Hybrid Text-Image Chunking
+### 4. Hybrid Text-Image Chunking
 
 Most RAG systems treat images as separate entities, losing their contextual relationship with surrounding text. Mini-RAG's `HybridChunker` solves this:
 
@@ -144,7 +174,7 @@ Traditional Approach:                    Mini-RAG Hybrid Approach:
 3. Merges image text back into the document at natural break points
 4. Chunks the enhanced text while tracking which images are referenced per chunk
 
-### 4. AI-Powered Chunk Contextualization
+### 5. AI-Powered Chunk Contextualization
 
 Inspired by [Anthropic's Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval), each chunk is enriched with AI-generated context before indexing:
 
@@ -158,7 +188,7 @@ After:   [Context: This chunk appears in Article 47 of the Egypt Labor Law No. 1
          ↑ Now the embedding captures the full meaning
 ```
 
-### 5. Production-Grade Resilience
+### 6. Production-Grade Resilience
 
 - **4-level API key failover** — Primary → Backup → Backup2 → Backup3 with automatic switching on rate limits
 - **Sliding window rate limiter** — 10 requests/minute with intelligent queuing
@@ -286,8 +316,13 @@ mini-rag/
 │   │   ├── multi_query.py             # LLM-powered query expansion 
 │   │   └── hyde.py                    # Hypothetical Document Embedding 
 │   │
+│   ├── agent/                         # ⭐ Agentic RAG layer (NEW)
+│   │   ├── source_router.py           # LLM-powered source selection engine
+│   │   ├── internet_retriever.py      # Web search with Tavily + fallback
+│   │   └── prompts.py                 # Agent decision-making prompts
+│   │
 │   ├── graph/                         # Self-correcting RAG
-│   │   ├── rag_graph.py               # ⭐ LangGraph state machine 
+│   │   ├── rag_graph.py               # ⭐ LangGraph state machine (+ agentic nodes)
 │   │   └── prompts.py                 # Engineered prompt library 
 │   │
 │   ├── evaluation/                    # RAG evaluation framework
@@ -444,6 +479,8 @@ python -m evaluation.cli report --results-path results/latest.json
 | **API** | FastAPI 0.110 | Async REST API with auto-docs |
 | **LLM** | Cohere / OpenAI | Generation + Embeddings |
 | **Orchestration** | LangGraph 0.2.50 | Self-correcting RAG state machine |
+| **Agentic Layer** | Custom Agent (SourceRouter + InternetRetriever) | Dynamic source selection & web augmentation |
+| **Web Search** | Tavily Search API | Live internet retrieval for agent |
 | **Vector DB** | PGVector · Qdrant | Semantic similarity search |
 | **Keyword Search** | BM25 (rank-bm25) | Sparse lexical retrieval |
 | **Reranking** | Cohere Rerank v3 · BAAI/bge-reranker-v2-m3 | Cross-encoder relevance scoring |
@@ -460,6 +497,9 @@ python -m evaluation.cli report --results-path results/latest.json
 
 | Decision | Rationale |
 |----------|-----------|
+| **Agentic source selection over static retrieval** | A static pipeline always uses the same sources. The agent layer dynamically evaluates context sufficiency and only fetches external data when the local knowledge base is insufficient — reducing latency and API costs for well-covered queries |
+| **Separate agentic iteration limits** | Classic RAG loops (retrieve→rewrite) and agentic loops (evaluate→fetch→re-generate) have independent counters (`max_iterations` vs `max_agentic_iterations`) to prevent compound explosion while allowing each loop to operate at its optimal depth |
+| **Internet as extensible source interface** | The `InternetRetriever` uses a backend-fallback pattern (Tavily → Mock). Adding new search backends (e.g., Bing, Serper) requires only a new `_search_*` function — zero changes to the router or graph |
 | **Hybrid chunking over separate image indexing** | Preserving text-image context proximity dramatically improves retrieval relevance for documents with diagrams, tables in images, and annotated figures |
 | **RRF over learned fusion** | RRF is model-free, requires no training data, and works across different score scales (cosine similarity vs BM25). More robust in production than learned weighting |
 | **Cross-encoder reranking as final stage** | Bi-encoders are fast but shallow; cross-encoders see query+document jointly. Placing reranking after RRF gives it the best candidate pool while keeping latency acceptable (~418ms) |
@@ -474,6 +514,9 @@ python -m evaluation.cli report --results-path results/latest.json
 
 Contributions are welcome! Areas of active development:
 
+- [x] ~~Dynamic source selection agent~~ ✅ Shipped in `src/agent`
+- [ ] Additional search backends (Bing, Serper, Google) for InternetRetriever
+- [ ] Tool registry for external API integrations (weather, databases, calculators)
 - [ ] Streaming generation responses
 - [ ] Multi-tenant project isolation
 - [ ] Fine-tuned reranker on domain-specific data

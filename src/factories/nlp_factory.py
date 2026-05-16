@@ -120,21 +120,16 @@ def build_nlp_controller(
     if enable_agentic_rag:
         try:
             from agent.source_router import SourceRouter
-            from agent.tools_registry import ToolsRegistry
             from agent.internet_retriever import InternetRetriever
-            
-            # Initialize tools registry
-            tools_registry = ToolsRegistry()
             
             # Initialize internet retriever
             internet_retriever = InternetRetriever(
                 tavily_api_key=tavily_api_key or os.getenv("TAVILY_API_KEY"),
             )
             
-            # Initialize source router
+            # Initialize source router (internet only)
             source_router = SourceRouter(
                 generation_client=generation_client,
-                tools_registry=tools_registry,
                 internet_retriever=internet_retriever,
             )
             logger.info("[Factory] SourceRouter initialized (Agentic RAG enabled)")

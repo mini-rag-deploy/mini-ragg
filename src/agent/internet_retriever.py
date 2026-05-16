@@ -4,8 +4,7 @@ Internet Retriever — live web search for the Dynamic Source Selection layer.
 
 Backends (tried in order, first available wins):
   1. Tavily Search API  — best quality, designed for AI agents
-  2. DuckDuckGo         — free, no API key required (ddgs package)
-  3. Mock               — always available, returns a clear "not available" message
+  2. Mock               — always available, returns a clear "not available" message
 
 Edge cases:
   - API key missing  → skip to next backend
@@ -76,40 +75,6 @@ async def _search_tavily(query: str, api_key: str, max_results: int) -> Optional
         return None
 
 
-async def _search_duckduckgo(query: str, max_results: int) -> Optional[InternetResult]:
-    """DuckDuckGo — free, no API key."""
-    try:
-        from duckduckgo_search import DDGS
-
-        snippets = []
-        urls     = []
-        with DDGS() as ddgs:
-            for r in ddgs.text(query, max_results=max_results):
-                title   = r.get("title", "")
-                body    = r.get("body", "")
-                url     = r.get("href", "")
-                if body:
-                    snippets.append(f"**{title}**\n{body}")
-                    urls.append(url)
-
-        if not snippets:
-            return None
-
-        content = "\n\n---\n\n".join(snippets)
-        return InternetResult(
-            success=True,
-            content=f"[Web Search Results — DuckDuckGo]\n\n{content}",
-            sources=urls,
-            backend="duckduckgo",
-        )
-    except ImportError:
-        logger.debug("[InternetRetriever] duckduckgo-search not installed")
-        return None
-    except Exception as exc:
-        logger.warning(f"[InternetRetriever] DuckDuckGo failed: {exc}")
-        return None
-
-
 def _mock_result(query: str) -> InternetResult:
     """Always-available mock — used when all real backends fail."""
     return InternetResult(
@@ -167,12 +132,6 @@ class InternetRetriever:
         )
         if result:
             logger.info(f"[InternetRetriever] Tavily: {len(result.sources)} results")
-            return result
-
-        # ── Try DuckDuckGo ────────────────────────────────────────
-        result = await _search_duckduckgo(query, self.max_results)
-        if result:
-            logger.info(f"[InternetRetriever] DuckDuckGo: {len(result.sources)} results")
             return result
 
         # ── Mock fallback ─────────────────────────────────────────

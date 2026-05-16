@@ -352,6 +352,7 @@ class NLPController(BaseController):
             "sources_tried":     [],
             "external_data":     None,
             "audit_decision":    None,
+            "agentic_iterations": 0,  # Separate counter for agentic loops
         }
 
         result = await graph.ainvoke(initial_state)

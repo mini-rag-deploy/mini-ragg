@@ -31,7 +31,7 @@ class RAGState(TypedDict):
     question:      str
     documents:     List[Any]
     answer:        Optional[str]
-    iterations:    int
+    iterations:    int  # Classic RAG iterations (retrieve/rewrite)
     grade_reason:  Optional[str]
     question_type: Optional[str]
     # Agentic RAG fields
@@ -41,6 +41,7 @@ class RAGState(TypedDict):
     sources_tried:     List[str]
     external_data:     Optional[Any]
     audit_decision:    Optional[str]  # "end" or "rewrite"
+    agentic_iterations: int  # Agentic source selection iterations
 
 
 # Builder
@@ -49,7 +50,8 @@ def build_rag_graph(
     project,
     source_router=None,
     use_advanced_retrieval: bool = True,
-    max_iterations:         int  = 1,
+    max_iterations:         int  = 1,  # Classic RAG iterations
+    max_agentic_iterations: int  = 2,  # Agentic source selection iterations
     retrieval_top_k:        int  = 5,
     question_type:          str  = None,
     enable_source_selection: bool = False,
@@ -63,7 +65,8 @@ def build_rag_graph(
     project                : Project ORM object
     source_router          : SourceRouter instance (optional, for agentic features)
     use_advanced_retrieval : use hybrid+RRF+reranker pipeline if available
-    max_iterations         : max self-correction loops before giving up
+    max_iterations         : max classic RAG loops (retrieve/rewrite) before giving up
+    max_agentic_iterations : max agentic source selection attempts
     retrieval_top_k        : number of docs to retrieve per iteration
     question_type          : question type for prompt selection
     enable_source_selection: enable dynamic source selection (requires source_router)
@@ -223,6 +226,8 @@ def build_rag_graph(
         if not context:
             context = "No context available"
 
+        # Always ask LLM to decide, even if no documents
+        # LLM will determine if question is in-scope or out-of-scope
         need_more, reason = await source_router.decide_need_more_details(
             question=state["question"],
             context=context,
@@ -266,11 +271,11 @@ def build_rag_graph(
 
     # ── Node: Fetch data (Agentic) ───────────────────────────
     async def fetch_data(state: RAGState) -> RAGState:
-        """Fetch information from the selected source."""
+        """Fetch information from the selected source (internet only)."""
         if not enable_source_selection or not source_router:
             return state
         
-        source = state.get("selected_source", "vector_db")
+        source = state.get("selected_source", "internet")
         logger.info(f"[Graph] Fetching from source: {source}")
 
         sources_tried = state.get("sources_tried", [])
@@ -278,27 +283,8 @@ def build_rag_graph(
             sources_tried.append(source)
 
         try:
-            # Fetch directly from the selected source without re-evaluating
-            if source == "vector_db":
-                # Fetch from vector DB
-                logger.info("[Graph] Fetching from vector DB")
-                docs = await nlp_controller.advanced_retrieve(
-                    project=project,
-                    query=state["question"],
-                    top_k=retrieval_top_k,
-                )
-                external_data = docs
-                
-            elif source == "tools":
-                # Execute tool
-                logger.info("[Graph] Executing tool")
-                tool_result = await source_router._fetch_from_tools({
-                    "tool_name": "",  # Would need to be extracted
-                    "tool_params": {},
-                })
-                external_data = tool_result
-                
-            elif source == "internet":
+            # Only internet is available
+            if source == "internet":
                 # Search internet
                 logger.info("[Graph] Searching internet")
                 internet_result = await source_router._fetch_from_internet({
@@ -306,7 +292,12 @@ def build_rag_graph(
                 })
                 external_data = internet_result
             else:
-                external_data = None
+                # Fallback to internet if other source was selected
+                logger.warning(f"[Graph] Source '{source}' not available, using internet")
+                internet_result = await source_router._fetch_from_internet({
+                    "query": state["question"],
+                })
+                external_data = internet_result
 
             # Convert external data to document format
             new_docs = []
@@ -325,31 +316,24 @@ def build_rag_graph(
                             },
                             source="internet",
                         )]
-                elif isinstance(external_data, list):
-                    new_docs = external_data
-                elif isinstance(external_data, dict):
-                    from retrieval.hybrid_search import SearchResult
-                    text = str(external_data)
-                    new_docs = [SearchResult(
-                        text=text,
-                        score=1.0,
-                        metadata={"source": source},
-                        source=source,
-                    )]
 
-            logger.info(f"[Graph] Fetched {len(new_docs)} items from {source}")
+            logger.info(f"[Graph] Fetched {len(new_docs)} items from internet")
 
             all_docs = state.get("documents", []) + new_docs
+            
+            # Increment agentic iterations
+            agentic_iters = state.get("agentic_iterations", 0) + 1
 
             return {
                 **state,
                 "documents": all_docs,
                 "external_data": external_data,
                 "sources_tried": sources_tried,
+                "agentic_iterations": agentic_iters,
             }
 
         except Exception as exc:
-            logger.info(f"[Graph] Fetch from {source} failed: {exc}")
+            logger.info(f"[Graph] Fetch from internet failed: {exc}")
             return {
                 **state,
                 "sources_tried": sources_tried,
@@ -399,15 +383,16 @@ def build_rag_graph(
         need_more = state.get("need_more_details", False)
 
         if need_more:
+            # Check agentic iterations (separate from classic iterations)
+            agentic_iters = state.get("agentic_iterations", 0)
+            if agentic_iters >= max_agentic_iterations:
+                logger.info(f"[Graph] Max agentic iterations ({max_agentic_iterations}) reached, proceeding to audit")
+                return "audit_answer"
+            
             # Check if we've tried too many sources
             sources_tried = state.get("sources_tried", [])
             if len(sources_tried) >= 3:  # Max 3 sources
                 logger.info("[Graph] Max sources tried, proceeding to audit")
-                return "audit_answer"
-            
-            # Check if we've exceeded max iterations
-            if state["iterations"] >= max_iterations:
-                logger.info("[Graph] Max iterations reached, proceeding to audit")
                 return "audit_answer"
             
             return "route_source"

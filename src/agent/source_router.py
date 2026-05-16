@@ -19,7 +19,6 @@ from enum import Enum
 from .prompts import (
     NEED_MORE_DETAILS_PROMPT,
     SOURCE_SELECTION_PROMPT,
-    TOOL_PARAMS_EXTRACTION_PROMPT,
     INTERNET_QUERY_OPTIMIZATION_PROMPT,
 )
 
@@ -29,7 +28,6 @@ logger = logging.getLogger("uvicorn.error")
 class SourceType(str, Enum):
     """Available information sources."""
     VECTOR_DB = "vector_db"
-    TOOLS = "tools"
     INTERNET = "internet"
 
 
@@ -42,7 +40,6 @@ class SourceRouter:
     def __init__(
         self,
         generation_client,
-        tools_registry=None,
         internet_retriever=None,
     ):
         """
@@ -52,13 +49,10 @@ class SourceRouter:
         ----------
         generation_client
             LLM client for decision making
-        tools_registry : ToolsRegistry, optional
-            Registry of available tools
         internet_retriever : InternetRetriever, optional
             Internet search client
         """
         self.generation_client = generation_client
-        self.tools_registry = tools_registry
         self.internet_retriever = internet_retriever
         
         logger.info("[SourceRouter] Initialized")
@@ -167,105 +161,43 @@ class SourceRouter:
             # Get LLM decision
             result = self.generation_client.generate_json(prompt=prompt)
             
-            source = result.get("source", "vector_db")
+            source = result.get("source", "internet")  # Default to internet
             reason = result.get("reason", "No reason provided")
             
-            # Validate source
-            if source not in [s.value for s in SourceType]:
-                logger.warning(f"[SourceRouter] Invalid source '{source}', defaulting to vector_db")
-                source = SourceType.VECTOR_DB.value
+            # Force internet as the only available source
+            if source != "internet":
+                logger.info(f"[SourceRouter] Forcing source from '{source}' to 'internet' (only available source)")
+                source = "internet"
+                reason = "Internet is the only external source available"
             
             # CRITICAL: Check if source was already tried
             if source in previous_sources:
-                logger.warning(f"[SourceRouter] Source '{source}' was already tried, selecting alternative")
-                # Select an alternative source that hasn't been tried
-                available_sources = [s.value for s in SourceType if s.value not in previous_sources]
-                if available_sources:
-                    source = available_sources[0]
-                    reason = f"Original choice was already tried, using {source} instead"
-                    logger.info(f"[SourceRouter] Switched to: {source}")
-                else:
-                    # All sources tried, use internet as last resort
-                    source = SourceType.INTERNET.value
-                    reason = "All sources tried, using internet as last resort"
-                    logger.info("[SourceRouter] All sources tried, using internet")
+                logger.warning(f"[SourceRouter] Source '{source}' was already tried")
+                # Since internet is the only source, if it was tried, we're done
+                return {
+                    "source": source,
+                    "reason": "Internet was already tried, no more sources available",
+                    "query": result.get("query", question),
+                }
             
-            # Build response based on source type
+            # Build response for internet
             response = {
                 "source": source,
                 "reason": reason,
+                "query": result.get("query", question),
             }
-            
-            if source == SourceType.VECTOR_DB.value:
-                response["query"] = result.get("query", question)
-                
-            elif source == SourceType.TOOLS.value:
-                response["tool_name"] = result.get("tool_name", "")
-                response["tool_params"] = result.get("tool_params", {})
-                
-            elif source == SourceType.INTERNET.value:
-                response["query"] = result.get("query", question)
             
             logger.info(f"[SourceRouter] Selected source: {source} - {reason}")
             return response
             
         except Exception as exc:
             logger.error(f"[SourceRouter] Source selection failed: {exc}")
-            # Fallback to vector_db
+            # Fallback to internet
             return {
-                "source": SourceType.VECTOR_DB.value,
-                "reason": f"Selection error, defaulting to vector_db: {exc}",
+                "source": "internet",
+                "reason": f"Selection error, defaulting to internet: {exc}",
                 "query": question,
             }
-
-    async def extract_tool_parameters(
-        self,
-        question: str,
-        tool_name: str,
-    ) -> Dict[str, Any]:
-        """
-        Extract parameters for a specific tool from the question.
-        
-        Parameters
-        ----------
-        question : str
-            User's question
-        tool_name : str
-            Name of the tool to extract parameters for
-            
-        Returns
-        -------
-        Dict[str, Any]
-            Extracted parameters
-        """
-        logger.info(f"[SourceRouter] Extracting parameters for tool: {tool_name}")
-        
-        if not self.tools_registry:
-            logger.error("[SourceRouter] No tools registry available")
-            return {}
-        
-        tool = self.tools_registry.get_tool(tool_name)
-        if not tool:
-            logger.error(f"[SourceRouter] Tool not found: {tool_name}")
-            return {}
-        
-        # Build prompt
-        prompt = TOOL_PARAMS_EXTRACTION_PROMPT.format(
-            question=question,
-            tool_name=tool.name,
-            tool_description=tool.description,
-            required_params=str(tool.parameters),
-        )
-        
-        try:
-            # Get LLM extraction
-            result = self.generation_client.generate_json(prompt=prompt)
-            logger.info(f"[SourceRouter] Extracted parameters: {result}")
-            return result
-            
-        except Exception as exc:
-            logger.error(f"[SourceRouter] Parameter extraction failed: {exc}")
-            return {}
 
     async def optimize_internet_query(self, question: str) -> str:
         """
@@ -427,25 +359,6 @@ class SourceRouter:
         
         logger.info(f"[SourceRouter] Retrieved {len(docs)} documents from vector DB")
         return docs
-
-    async def _fetch_from_tools(self, selection: Dict[str, Any]) -> Any:
-        """Execute a tool and return results."""
-        logger.info("[SourceRouter] Fetching from tools")
-        
-        if not self.tools_registry:
-            logger.error("[SourceRouter] No tools registry available")
-            return None
-        
-        tool_name = selection.get("tool_name", "")
-        tool_params = selection.get("tool_params", {})
-        
-        if not tool_name:
-            logger.error("[SourceRouter] No tool name provided")
-            return None
-        
-        result = await self.tools_registry.execute_tool(tool_name, **tool_params)
-        logger.info(f"[SourceRouter] Tool execution result: {result}")
-        return result
 
     async def _fetch_from_internet(self, selection: Dict[str, Any]) -> Any:
         """Search the internet and return results."""
