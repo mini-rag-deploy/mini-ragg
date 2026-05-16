@@ -510,19 +510,6 @@ python -m evaluation.cli report --results-path results/latest.json
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Areas of active development:
-
-- [x] ~~Dynamic source selection agent~~ ✅ Shipped in `src/agent`
-- [ ] Additional search backends (Bing, Serper, Google) for InternetRetriever
-- [ ] Tool registry for external API integrations (weather, databases, calculators)
-- [ ] Streaming generation responses
-- [ ] Multi-tenant project isolation
-- [ ] Fine-tuned reranker on domain-specific data
-- [ ] PDF table structure preservation in chunks
-- [ ] WebSocket real-time processing status
-
 ---
 
 ## 📄 License
