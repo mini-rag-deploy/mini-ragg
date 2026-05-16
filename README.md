@@ -50,7 +50,7 @@
 ## 🏗️ System Architecture
 
 <p align="center">
-  <img src="docs/architecture_diagram.png" alt="System Architecture" width="90%"/>
+  <img src="docs/Architecture_Diagram.png" alt="System Architecture" width="90%"/>
 </p>
 
 The system operates as a **6-phase pipeline** with feedback loops and an agentic decision layer:
