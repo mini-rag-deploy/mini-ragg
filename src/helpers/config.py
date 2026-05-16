@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     CELERY_WORKER_CONCURRENCY: int = 2
     CELERY_FLOWER_PASSWORD: str
 
+    # Agentic RAG Configuration
+    TAVILY_API_KEY: str = None
+
     class Config:
         env_file = ".env"
 

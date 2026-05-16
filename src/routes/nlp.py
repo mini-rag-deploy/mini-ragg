@@ -129,12 +129,14 @@ async def answer_rag_question(request: Request, project_id: int,
 
     # use_self_correction=True → Self-correcting RAG graph
     # use_advanced_retrieval=True → Hybrid search + reranking + multi-query
+    # enable_source_selection=True → Agentic source selection (Vector DB, Tools, Internet)
     answer, metadata, chat_history = await nlp_controller.answer_rag_question(
         project=project,
         query=search_request.text,
         limit=search_request.limit,
         use_self_correction=True,
         use_advanced_retrieval=True,  # Enable all advanced retrieval features
+        enable_source_selection=search_request.enable_source_selection,  # Enable agentic features
     )
 
     if not answer:

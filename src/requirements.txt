@@ -62,4 +62,9 @@ rank-bm25==0.2.2
  
 # Re-ranking
 #sentence-transformers==3.3.1  # CrossEncoder + BAAI/bge-reranker-v2-m3
+
+tavily-python
+duckduckgo-search
+
+pytest-asyncio
  

@@ -36,6 +36,7 @@ class NLPController(BaseController):
         reranker=None,               # Reranker instance
         multi_query_expander=None,   # MultiQueryExpander instance
         rrf_fusion=None,             # RRFFusion instance
+        source_router=None,          # SourceRouter instance for agentic RAG
     ):
         super().__init__()
         self.vectordb_client      = vectordb_client
@@ -48,6 +49,9 @@ class NLPController(BaseController):
         self.reranker             = reranker
         self.multi_query_expander = multi_query_expander
         self.rrf_fusion           = rrf_fusion
+        
+        # Agentic RAG (None = not configured → uses classic RAG)
+        self.source_router        = source_router
 
     # Helpers
     def create_collection_name(self, project_id: str) -> str:
@@ -286,6 +290,7 @@ class NLPController(BaseController):
         use_self_correction:    bool = True,
         use_advanced_retrieval: bool = True,
         question_type:          str  = None,  # NEW: question type for prompt selection
+        enable_source_selection: bool = False,  # NEW: enable agentic source selection
     ) -> Tuple[Optional[str], Any, list]:
         """
         Parameters
@@ -293,6 +298,7 @@ class NLPController(BaseController):
         use_self_correction    : run the LangGraph self-correcting loop
         use_advanced_retrieval : use hybrid + RRF + reranker pipeline
         question_type          : type of question (factual, analytical, comparative, summarization, hallucination)
+        enable_source_selection: enable dynamic source selection (requires source_router)
 
         Returns
         -------
@@ -306,6 +312,7 @@ class NLPController(BaseController):
                 query=query,
                 use_advanced_retrieval=use_advanced_retrieval,
                 question_type=question_type,  # Pass question type
+                enable_source_selection=enable_source_selection,  # Pass agentic flag
             )
         else:
             print("answer with basic")
@@ -318,14 +325,17 @@ class NLPController(BaseController):
         query:                  str,
         use_advanced_retrieval: bool = True,
         question_type:          str = None,  # NEW: question type for prompt selection
+        enable_source_selection: bool = False,  # NEW: enable agentic source selection
     ):
         from graph.rag_graph import build_rag_graph
 
         graph = build_rag_graph(
             nlp_controller=self,
             project=project,
+            source_router=self.source_router,  # Pass source router
             use_advanced_retrieval=use_advanced_retrieval,
             question_type=question_type,  # Pass question type to graph
+            enable_source_selection=enable_source_selection,  # Pass agentic flag
         )
 
         initial_state = {
@@ -335,6 +345,14 @@ class NLPController(BaseController):
             "iterations":    0,
             "grade_reason":  None,
             "question_type": question_type,  # Add to state
+            # Agentic RAG fields
+            "need_more_details": None,
+            "selected_source":   None,
+            "source_reason":     None,
+            "sources_tried":     [],
+            "external_data":     None,
+            "audit_decision":    None,
+            "agentic_iterations": 0,  # Separate counter for agentic loops
         }
 
         result = await graph.ainvoke(initial_state)
@@ -362,9 +380,13 @@ class NLPController(BaseController):
         metadata = {
             "iterations":             result.get("iterations", 0),
             "docs_used":              len(documents),
-            "mode":                   "self_correcting",
+            "mode":                   "agentic" if enable_source_selection else "self_correcting",
             "advanced_retrieval":     use_advanced_retrieval,
             "documents":              serializable_documents,  # Use serializable version
+            # Agentic metadata
+            "sources_tried":          result.get("sources_tried", []),
+            "selected_source":        result.get("selected_source"),
+            "source_reason":          result.get("source_reason"),
         }
         return answer, metadata, []
 
